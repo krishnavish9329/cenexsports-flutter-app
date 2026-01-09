@@ -1,23 +1,32 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv';
 
 /// API Configuration - Centralized configuration for WooCommerce API
 /// Uses environment variables for secure credential management
+/// Falls back to existing API credentials if .env is not available
 class ApiConfig {
+  // Static configuration values - can be overridden from .env in main.dart
+  static String _baseUrl = 'https://cenexsports.co.in/wp-json/wc/v3';
+  static String _consumerKey = 'ck_66867a5f826ba9290cf9d476e5c4a23370538df';
+  static String _consumerSecret = 'cs_c2314e31215cf78d5d76afe285a09b34fdcee6d1';
+  
   // Base URL
-  static String get baseUrl {
-    return dotenv.env['WOOCOMMERCE_BASE_URL'] ?? 
-           'https://cenexsports.co.in/wp-json/wc/v3';
-  }
+  static String get baseUrl => _baseUrl;
   
   // Consumer Key
-  static String get consumerKey {
-    return dotenv.env['WOOCOMMERCE_CONSUMER_KEY'] ?? '';
-  }
+  static String get consumerKey => _consumerKey;
   
   // Consumer Secret
-  static String get consumerSecret {
-    return dotenv.env['WOOCOMMERCE_CONSUMER_SECRET'] ?? '';
+  static String get consumerSecret => _consumerSecret;
+  
+  // Initialize from environment variables (called from main.dart)
+  static void initialize({
+    String? baseUrl,
+    String? consumerKey,
+    String? consumerSecret,
+  }) {
+    if (baseUrl != null) _baseUrl = baseUrl;
+    if (consumerKey != null) _consumerKey = consumerKey;
+    if (consumerSecret != null) _consumerSecret = consumerSecret;
   }
   
   // Generate Basic Auth token

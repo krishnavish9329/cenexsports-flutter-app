@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../core/providers/cart_provider.dart';
 import '../core/theme/app_theme.dart';
 import '../widgets/section_header.dart';
+import '../presentation/pages/checkout_page.dart';
 import 'product_detail_page.dart';
 
 class CartPage extends StatefulWidget {
@@ -382,15 +383,12 @@ class _CartPageState extends State<CartPage> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Order placed for ₹${cartProvider.grandTotal.toStringAsFixed(0)}',
-                  ),
-                  backgroundColor: AppTheme.successColor,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CheckoutPage(),
                 ),
               );
-              cartProvider.clearCart();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,

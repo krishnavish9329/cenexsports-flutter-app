@@ -395,11 +395,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         Wrap(
           spacing: AppTheme.spacingS,
           children: colors.map((colorData) {
-            final isSelected = _selectedColor == colorData['name'];
+            final colorName = colorData['name'] as String;
+            final isSelected = _selectedColor == colorName;
             return GestureDetector(
               onTap: () {
                 setState(() {
-                  _selectedColor = colorData['name'];
+                  _selectedColor = colorName;
                 });
               },
               child: Container(

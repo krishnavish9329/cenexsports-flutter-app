@@ -1,6 +1,9 @@
 import '../../data/models/order_model.dart';
 import '../../data/services/order_api_service.dart';
 
+// Export OrderApiException for use in domain layer
+export '../../data/services/order_api_service.dart' show OrderApiException;
+
 /// Abstract repository interface for order operations
 /// Follows Clean Architecture - Domain layer doesn't depend on data layer implementation
 abstract class OrderRepository {

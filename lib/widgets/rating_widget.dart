@@ -18,8 +18,8 @@ class RatingWidget extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
+      spacing: 4,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -46,15 +46,14 @@ class RatingWidget extends StatelessWidget {
             ],
           ),
         ),
-        if (showReviews && reviews > 0) ...[
-          const SizedBox(width: 6),
+        if (showReviews && reviews > 0)
           Text(
             '($reviews)',
             style: AppTextStyles.bodySmall.copyWith(
               color: Colors.grey[600],
             ),
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
       ],
     );
   }

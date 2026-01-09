@@ -5,6 +5,7 @@ import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/skeleton_loader.dart';
 import '../core/theme/app_theme.dart';
+import '../core/utils/responsive_helper.dart';
 import '../core/providers/cart_provider.dart';
 import 'product_detail_page.dart';
 
@@ -100,22 +101,29 @@ class _CategoryPageState extends State<CategoryPage> {
       return _buildEmptyState();
     }
 
-    return GridView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(AppTheme.spacingM),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: AppTheme.spacingM,
-        mainAxisSpacing: AppTheme.spacingM,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final product = products[index];
-        return ProductCard(
-          product: product,
-          onTap: () => _navigateToProductDetail(product),
-          onAddToCart: () => _addToCart(product),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = ResponsiveHelper.getGridCrossAxisCount(context);
+        final aspectRatio = ResponsiveHelper.getProductCardAspectRatio(context);
+        final padding = ResponsiveHelper.getPadding(context);
+        
+        return GridView.builder(
+          controller: _scrollController,
+          padding: EdgeInsets.all(padding),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: aspectRatio,
+            crossAxisSpacing: padding,
+            mainAxisSpacing: padding,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return ProductCard(
+              product: product,
+              onTap: () => _navigateToProductDetail(product),
+            );
+          },
         );
       },
     );
@@ -150,36 +158,41 @@ class _CategoryPageState extends State<CategoryPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppTheme.radiusM),
-                bottomLeft: Radius.circular(AppTheme.radiusM),
-              ),
-              child: product.imageUrl.startsWith('http')
-                  ? Image.network(
-                      product.imageUrl,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        width: 120,
-                        height: 120,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported),
-                      ),
-                    )
-                  : Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[200],
-                      child: Center(
-                        child: Text(
-                          product.imageUrl,
-                          style: const TextStyle(fontSize: 40),
-                        ),
-                      ),
+            // Image - Using AspectRatio for responsive sizing
+            Flexible(
+              flex: 0,
+              child: SizedBox(
+                width: 120,
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(AppTheme.radiusM),
+                      bottomLeft: Radius.circular(AppTheme.radiusM),
                     ),
+                    child: product.imageUrl.startsWith('http')
+                        ? Image.network(
+                            product.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.image_not_supported),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: FittedBox(
+                                child: Text(
+                                  product.imageUrl,
+                                  style: const TextStyle(fontSize: 40),
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
             ),
             // Content
             Expanded(
@@ -188,13 +201,15 @@ class _CategoryPageState extends State<CategoryPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      product.name,
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        product.name,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppTheme.spacingS),
                     Text(
@@ -202,18 +217,6 @@ class _CategoryPageState extends State<CategoryPage> {
                       style: AppTextStyles.h3.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingS),
-                    ElevatedButton.icon(
-                      onPressed: () => _addToCart(product),
-                      icon: const Icon(Icons.shopping_cart_outlined, size: 18),
-                      label: const Text('Add to Cart'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
                       ),
                     ),
                   ],

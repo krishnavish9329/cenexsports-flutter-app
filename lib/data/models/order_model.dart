@@ -48,7 +48,7 @@ class OrderModel {
       'shipping': shipping.toJson(),
       'line_items': lineItems.map((item) => item.toJson()).toList(),
       if (customerId != null) 'customer_id': customerId,
-      if (customerNote != null && customerNote.isNotEmpty) 'customer_note': customerNote,
+      if (customerNote != null && customerNote!.isNotEmpty) 'customer_note': customerNote,
     };
   }
 

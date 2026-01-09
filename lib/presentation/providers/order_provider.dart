@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/order_model.dart';
-import '../../data/services/order_api_service.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../../domain/usecases/place_order_usecase.dart';
+
+// Import OrderApiException from repository (which exports it)
+import '../../data/services/order_api_service.dart' show OrderApiException;
 
 /// Order state for Riverpod
 class OrderState {
