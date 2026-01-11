@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
           ),
           Stack(
             children: [
-              IconButton(
+          IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 onPressed: () {
                   Navigator.push(
@@ -163,13 +163,13 @@ class _HomePageState extends State<HomePage> {
                   horizontal: AppTheme.spacingM,
                   vertical: AppTheme.spacingS,
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
+            child: Row(
+              children: [
+                Expanded(
+                    child: TextField(
+                      controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search for products, brands and more',
+                        hintText: 'Search for products, brands and more',
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.camera_alt_outlined),
@@ -182,12 +182,12 @@ class _HomePageState extends State<HomePage> {
                             borderSide: BorderSide.none,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
+                          horizontal: 16,
+                          vertical: 12,
                         ),
                       ),
                     ),
+                  ),
                   ],
                 ),
               ),
@@ -204,18 +204,18 @@ class _HomePageState extends State<HomePage> {
                       vertical: AppTheme.spacingM,
                       horizontal: ResponsiveHelper.getPadding(context),
                     ),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: DummyData.getCategories().length,
-                      itemBuilder: (context, index) {
-                        final category = DummyData.getCategories()[index];
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: DummyData.getCategories().length,
+              itemBuilder: (context, index) {
+                final category = DummyData.getCategories()[index];
                         return _buildCategoryItem(category, categorySize);
                       },
                     ),
                   );
-                },
-              ),
+              },
             ),
+          ),
 
             // Featured Products Section - Responsive
             if (_isLoading)
@@ -249,9 +249,9 @@ class _HomePageState extends State<HomePage> {
               )
             else if (_featuredProducts.isNotEmpty)
               SliverToBoxAdapter(
-                child: Column(
+                        child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                          children: [
                     SectionHeader(
                       title: 'Featured Products',
                       actionLabel: 'See All',
@@ -298,9 +298,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                       },
-                    ),
-                  ],
-                ),
+                            ),
+                          ],
+                        ),
               ),
 
             // Best Sellers Section - Responsive Grid
@@ -482,16 +482,16 @@ class _HomePageState extends State<HomePage> {
                       title: 'All Products',
                       actionLabel: 'See All',
                       onActionTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
                             builder: (context) => CategoryPage(
                               categoryName: 'All Products',
                               products: _products,
-                            ),
-                          ),
-                        );
-                      },
+                                      ),
+                                    ),
+                                  );
+                                },
                     ),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -526,16 +526,16 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: AppTheme.spacingL),
                   ],
-                ),
-              ),
-          ],
+                          ),
+          ),
+        ],
         ),
       ),
     );
   }
 
   Widget _buildCategoryItem(String category, double size) {
-    return GestureDetector(
+      return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -560,11 +560,11 @@ class _HomePageState extends State<HomePage> {
                 ? Colors.grey[800]!
                 : Colors.grey[200]!,
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
-          children: [
+            children: [
             Flexible(
               child: Container(
                 padding: EdgeInsets.all(size * 0.15),
@@ -584,20 +584,20 @@ class _HomePageState extends State<HomePage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(
-                  category,
+                category,
                   style: AppTextStyles.bodySmall.copyWith(
                     fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
+                ),
+                textAlign: TextAlign.center,
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
   }
 
   IconData _getCategoryIcon(String category) {

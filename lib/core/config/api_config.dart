@@ -6,7 +6,7 @@ import 'dart:convert';
 class ApiConfig {
   // Static configuration values - can be overridden from .env in main.dart
   static String _baseUrl = 'https://cenexsports.co.in/wp-json/wc/v3';
-  static String _consumerKey = 'ck_66867a5f826ba9290cf9d476e5c4a23370538df';
+  static String _consumerKey = 'ck_66867a5f826ba9290cf9d476e5c4a23370538df7';
   static String _consumerSecret = 'cs_c2314e31215cf78d5d76afe285a09b34fdcee6d1';
   
   // Base URL

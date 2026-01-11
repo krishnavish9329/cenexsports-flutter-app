@@ -7,11 +7,17 @@ import '../../data/models/billing_model.dart';
 import '../../data/models/shipping_model.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/line_item_model.dart';
+import '../../data/models/customer_model.dart';
 import '../providers/order_provider.dart';
 import 'order_success_page.dart';
 
 class CheckoutPage extends ConsumerStatefulWidget {
-  const CheckoutPage({super.key});
+  final CustomerModel? existingCustomer;
+
+  const CheckoutPage({
+    super.key,
+    this.existingCustomer,
+  });
 
   @override
   ConsumerState<CheckoutPage> createState() => _CheckoutPageState();
@@ -47,6 +53,39 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   bool _sameAsBilling = true;
   String _paymentMethod = 'cod'; // Cash on Delivery
   String _paymentMethodTitle = 'Cash on Delivery';
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-fill form if customer data exists
+    if (widget.existingCustomer != null) {
+      _autoFillCustomerData(widget.existingCustomer!);
+    }
+  }
+
+  void _autoFillCustomerData(CustomerModel customer) {
+    // Fill billing fields
+    _billingFirstNameController.text = customer.firstName ?? '';
+    _billingLastNameController.text = customer.lastName ?? '';
+    _billingEmailController.text = customer.email ?? '';
+    
+    // Fill billing address if available
+    if (customer.billing != null) {
+      final billing = customer.billing!;
+      _billingPhoneController.text = billing.phone;
+      _billingAddress1Controller.text = billing.address1;
+      _billingAddress2Controller.text = billing.address2;
+      _billingCityController.text = billing.city;
+      _billingStateController.text = billing.state;
+      _billingPostcodeController.text = billing.postcode;
+      _billingCompanyController.text = billing.company;
+    }
+    
+    // Copy to shipping if same as billing
+    if (_sameAsBilling) {
+      _copyBillingToShipping();
+    }
+  }
 
   @override
   void dispose() {

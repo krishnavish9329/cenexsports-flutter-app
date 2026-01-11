@@ -11,6 +11,7 @@ import '../widgets/skeleton_loader.dart';
 import '../core/theme/app_theme.dart';
 import '../core/providers/cart_provider.dart';
 import 'cart_page.dart';
+import '../presentation/pages/email_checkout_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -125,24 +126,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                 // Image Carousel
                 _buildImageCarousel(images),
                 
                 // Product Info
-                Padding(
+            Padding(
                   padding: const EdgeInsets.all(AppTheme.spacingM),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                       // Badges
-                      if (product.isNew || product.isBestSeller)
+                  if (product.isNew || product.isBestSeller)
                         Wrap(
                           spacing: AppTheme.spacingS,
-                          children: [
-                            if (product.isNew)
+                      children: [
+                        if (product.isNew)
                               _buildBadge('NEW', AppTheme.successColor),
                             if (product.isBestSeller)
                               _buildBadge('BESTSELLER', AppTheme.warningColor),
@@ -155,9 +156,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       Text(
                         product.name,
                         style: AppTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                       const SizedBox(height: AppTheme.spacingS),
                       
                       // Rating & Reviews
@@ -176,8 +177,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               style: AppTextStyles.bodySmall,
                             ),
                           ),
-                        ],
-                      ),
+                      ],
+                    ),
                       const SizedBox(height: AppTheme.spacingM),
                       
                       // Price
@@ -192,15 +193,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       const SizedBox(height: AppTheme.spacingM),
                       
                       // Availability
-                      Row(
-                        children: [
+                  Row(
+                    children: [
                           Icon(
                             Icons.check_circle,
                             color: AppTheme.successColor,
                             size: 20,
                           ),
                           const SizedBox(width: AppTheme.spacingS),
-                          Text(
+                            Text(
                             'In Stock',
                             style: AppTextStyles.bodyMedium.copyWith(
                               color: AppTheme.successColor,
@@ -280,7 +281,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         height: 400,
                         color: Colors.grey[200],
                         child: Center(
-                          child: Text(
+                        child: Text(
                             imageUrl,
                             style: const TextStyle(fontSize: 100),
                           ),
@@ -334,9 +335,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         text,
         style: AppTextStyles.caption.copyWith(
           color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
     );
   }
 
@@ -460,9 +461,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             },
             child: Text(
               _isDescriptionExpanded ? 'Read less' : 'Read more',
+              ),
             ),
-          ),
-      ],
+          ],
     );
   }
 
@@ -513,16 +514,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingM),
-      decoration: BoxDecoration(
+        decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [
-          BoxShadow(
+          boxShadow: [
+            BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
       child: SafeArea(
         child: Row(
           children: [
@@ -560,9 +561,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   if (!isInCart) {
                     cartProvider.addToCart(product);
                   }
+                  // Navigate to email-first checkout
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CartPage()),
+                    MaterialPageRoute(
+                      builder: (context) => const EmailCheckoutPage(),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(

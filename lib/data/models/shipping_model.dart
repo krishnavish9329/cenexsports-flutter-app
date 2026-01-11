@@ -27,13 +27,13 @@ class ShippingModel {
     return {
       'first_name': firstName,
       'last_name': lastName,
-      'company': company,
       'address_1': address1,
       'address_2': address2,
       'city': city,
       'state': state,
       'postcode': postcode,
       'country': country,
+      // Company field removed from API request
     };
   }
 

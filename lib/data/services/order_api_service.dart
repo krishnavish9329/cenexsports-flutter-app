@@ -137,4 +137,82 @@ class OrderApiService {
       );
     }
   }
+
+  /// Get orders by customer ID
+  /// 
+  /// [customerId] - The customer ID to fetch orders for
+  /// Returns list of orders for the customer
+  /// 
+  /// Throws [OrderApiException] on failure
+  Future<List<OrderModel>> getOrdersByCustomer(int customerId) async {
+    try {
+      final response = await _dio.get(
+        '/orders',
+        queryParameters: {'customer': customerId},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as List<dynamic>;
+        return data
+            .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw OrderApiException(
+          'Failed to get orders. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to get orders');
+    } catch (e) {
+      if (e is OrderApiException) rethrow;
+      throw OrderApiException('Unexpected error: ${e.toString()}', error: e);
+    }
+  }
+
+  /// Handle DioException and convert to OrderApiException
+  OrderApiException _handleDioException(DioException e, String defaultMessage) {
+    String errorMessage = defaultMessage;
+    int? statusCode;
+
+    if (e.response != null) {
+      statusCode = e.response!.statusCode;
+      final errorData = e.response!.data;
+
+      if (errorData is Map<String, dynamic>) {
+        if (errorData.containsKey('message')) {
+          errorMessage = errorData['message'].toString();
+        } else if (errorData.containsKey('code')) {
+          errorMessage = errorData['code'].toString();
+        }
+      }
+
+      switch (statusCode) {
+        case 400:
+          errorMessage = 'Invalid request. Please check your information.';
+          break;
+        case 401:
+          errorMessage = 'Authentication failed. Please check API credentials.';
+          break;
+        case 404:
+          errorMessage = 'Orders not found.';
+          break;
+        case 500:
+          errorMessage = 'Server error. Please try again later.';
+          break;
+      }
+    } else if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      errorMessage = 'Request timeout. Please check your internet connection.';
+    } else if (e.type == DioExceptionType.connectionError) {
+      errorMessage = 'No internet connection. Please check your network.';
+    }
+
+    return OrderApiException(
+      errorMessage,
+      statusCode: statusCode,
+      error: e,
+    );
+  }
 }

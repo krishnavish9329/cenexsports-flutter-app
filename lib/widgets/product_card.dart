@@ -9,13 +9,13 @@ import 'rating_widget.dart';
 class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
-  
+
   const ProductCard({
     super.key,
     required this.product,
     required this.onTap,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -27,17 +27,17 @@ class ProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         side: BorderSide(
           color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-          width: 1,
+            width: 1,
+          ),
         ),
-      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTheme.radiusM),
         child: IntrinsicHeight(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
               // Image Section - AspectRatio ensures proper sizing
               Stack(
                 clipBehavior: Clip.hardEdge,
@@ -45,13 +45,13 @@ class ProductCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(AppTheme.radiusM),
-                    ),
+                      ),
                     child: AspectRatio(
                       aspectRatio: 1,
-                      child: product.imageUrl.startsWith('http')
+                    child: product.imageUrl.startsWith('http')
                           ? CachedNetworkImage(
                               imageUrl: product.imageUrl,
-                              fit: BoxFit.cover,
+                            fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
                                 color: Colors.grey[200],
                                 child: const Center(
@@ -66,24 +66,24 @@ class ProductCard extends StatelessWidget {
                                   color: Colors.grey,
                                 ),
                               ),
-                            )
+                          )
                           : Container(
                               color: Colors.grey[200],
                               child: Center(
                                 child: FittedBox(
-                                  child: Text(
-                                    product.imageUrl,
-                                    style: const TextStyle(fontSize: 60),
-                                  ),
-                                ),
-                              ),
+                            child: Text(
+                              product.imageUrl,
+                              style: const TextStyle(fontSize: 60),
+                            ),
+                          ),
+                  ),
                             ),
                     ),
                   ),
                   // Badges - Wrap to prevent overflow
-                  Positioned(
-                    top: 8,
-                    left: 8,
+                    Positioned(
+                      top: 8,
+                      left: 8,
                     child: Wrap(
                       spacing: 4,
                       runSpacing: 4,
@@ -93,12 +93,12 @@ class ProductCard extends StatelessWidget {
                         if (product.isBestSeller)
                           _buildBadge('BEST', AppTheme.warningColor),
                       ],
+                      ),
                     ),
-                  ),
                   // Wishlist button
-                  Positioned(
-                    top: 8,
-                    right: 8,
+                    Positioned(
+                      top: 8,
+                      right: 8,
                     child: Material(
                       color: Colors.white.withOpacity(0.9),
                       shape: const CircleBorder(),
@@ -112,30 +112,30 @@ class ProductCard extends StatelessWidget {
                             size: 18,
                             color: Colors.grey,
                           ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
               // Content Section - Flexible to prevent overflow
-              Flexible(
-                child: Padding(
+            Flexible(
+              child: Padding(
                   padding: const EdgeInsets.all(AppTheme.spacingM),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                       // Product Name - Properly constrained
-                      Text(
-                        product.name,
+                    Text(
+                      product.name,
                         style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w600,
                           height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                       const SizedBox(height: AppTheme.spacingS),
                       // Rating - Wrap to prevent overflow
                       Wrap(
@@ -155,16 +155,16 @@ class ProductCard extends StatelessWidget {
                           originalPrice: product.originalPrice > product.price ? product.originalPrice : null,
                           discount: product.discount > 0 ? product.discount : null,
                           priceStyle: AppTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+          ],
           ),
         ),
       ),
