@@ -33,7 +33,7 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
   final _signupFirstNameController = TextEditingController();
   final _signupLastNameController = TextEditingController();
   final _signupEmailController = TextEditingController();
-  final _signupPhoneController = TextEditingController();
+  final _signupUsernameController = TextEditingController();
   final _signupPasswordController = TextEditingController();
   final _signupConfirmPasswordController = TextEditingController();
 
@@ -61,7 +61,7 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
     _signupFirstNameController.dispose();
     _signupLastNameController.dispose();
     _signupEmailController.dispose();
-    _signupPhoneController.dispose();
+    _signupUsernameController.dispose();
     _signupPasswordController.dispose();
     _signupConfirmPasswordController.dispose();
     super.dispose();
@@ -205,47 +205,36 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTheme.spacingXL),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _signupFirstNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'First Name *',
-                      hintText: 'John',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'First name is required';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppTheme.spacingM),
-                Expanded(
-                  child: TextFormField(
-                    controller: _signupLastNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Last Name *',
-                      hintText: 'Doe',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Last name is required';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
+            TextFormField(
+              controller: _signupFirstNameController,
+              decoration: const InputDecoration(
+                labelText: 'First Name *',
+                hintText: 'krishna',
+                prefixIcon: Icon(Icons.person),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'First name is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: AppTheme.spacingM),
+            TextFormField(
+              controller: _signupLastNameController,
+              decoration: const InputDecoration(
+                labelText: 'Last Name',
+                hintText: 'vish',
+                prefixIcon: Icon(Icons.person),
+              ),
+              // Last name is optional - no validator
             ),
             const SizedBox(height: AppTheme.spacingM),
             TextFormField(
               controller: _signupEmailController,
               decoration: const InputDecoration(
                 labelText: 'Email *',
-                hintText: 'john@example.com',
+                hintText: 'krishna@gmail.com',
                 prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
@@ -261,16 +250,15 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
             ),
             const SizedBox(height: AppTheme.spacingM),
             TextFormField(
-              controller: _signupPhoneController,
+              controller: _signupUsernameController,
               decoration: const InputDecoration(
-                labelText: 'Phone Number *',
-                hintText: '+91 9876543210',
-                prefixIcon: Icon(Icons.phone),
+                labelText: 'Username *',
+                hintText: 'krishna123',
+                prefixIcon: Icon(Icons.account_circle),
               ),
-              keyboardType: TextInputType.phone,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Phone number is required';
+                  return 'Username is required';
                 }
                 return null;
               },
@@ -298,16 +286,9 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
                 if (value == null || value.isEmpty) {
                   return 'Password is required';
                 }
-                if (value.length < 8) {
-                  return 'Password must be at least 8 characters';
-                }
+                // Simple validation - API accepts any password
                 return null;
               },
-            ),
-            const SizedBox(height: AppTheme.spacingS),
-            Text(
-              'Password must contain: uppercase, lowercase, number, and special character',
-              style: AppTextStyles.caption.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: AppTheme.spacingM),
             TextFormField(
@@ -419,24 +400,17 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
 
     ref.read(authProvider.notifier).clearError();
 
-    // Create customer model
+    // Create customer model - matching cURL API structure
+    // Only: email, username, password, first_name, last_name (optional)
     final customer = CustomerModel(
       email: _signupEmailController.text.trim(),
       firstName: _signupFirstNameController.text.trim(),
-      lastName: _signupLastNameController.text.trim(),
-      username: _signupEmailController.text.trim().split('@')[0],
+      lastName: _signupLastNameController.text.trim().isEmpty 
+          ? null 
+          : _signupLastNameController.text.trim(),
+      username: _signupUsernameController.text.trim(),
       password: _signupPasswordController.text.trim(),
-      billing: BillingModel(
-        firstName: _signupFirstNameController.text.trim(),
-        lastName: _signupLastNameController.text.trim(),
-        email: _signupEmailController.text.trim(),
-        phone: _signupPhoneController.text.trim(),
-        address1: '',
-        city: '',
-        state: '',
-        postcode: '',
-        country: 'IN',
-      ),
+      // No billing/shipping in creation - keep it simple
     );
 
     final success = await ref.read(authProvider.notifier).register(customer);

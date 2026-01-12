@@ -34,20 +34,40 @@ class CustomerModel {
   });
 
   /// Convert to JSON for API request (POST /customers) and storage
+  /// If password is present, it's a creation request - send only: email, username, password, first_name, last_name
+  /// Otherwise, it's for storage/response - include all fields
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     
+    // If password exists, this is a creation request - send minimal fields matching cURL API
+    if (password != null) {
+      if (email != null) json['email'] = email;
+      if (username != null) json['username'] = username;
+      json['password'] = password;
+      if (firstName != null) json['first_name'] = firstName;
+      if (lastName != null && lastName!.isNotEmpty) json['last_name'] = lastName;
+      // Don't include id, billing, shipping, etc. for creation
+      return json;
+    }
+    
+    // For storage/response: include all fields
     if (id != null) json['id'] = id;
     if (email != null) json['email'] = email;
+    if (username != null) json['username'] = username;
     if (firstName != null) json['first_name'] = firstName;
     if (lastName != null) json['last_name'] = lastName;
-    if (username != null) json['username'] = username;
-    if (password != null) json['password'] = password;
     if (billing != null) json['billing'] = billing!.toJson();
+    if (shipping != null) json['shipping'] = shipping!.toJson();
     if (dateCreated != null) json['date_created'] = dateCreated;
     if (dateModified != null) json['date_modified'] = dateModified;
     if (role != null) json['role'] = role;
     if (isPayingCustomer != null) json['is_paying_customer'] = isPayingCustomer;
+    if (metaData != null && metaData!.isNotEmpty) {
+      json['meta_data'] = metaData!.map((meta) => {
+        'key': meta['key'],
+        'value': meta['value'],
+      }).toList();
+    }
     
     return json;
   }
@@ -121,13 +141,16 @@ class CustomerModel {
   }
 
   /// Check if customer data is valid for creation
+  /// Required: email, username, password, first_name
+  /// Optional: last_name
   bool get isValidForCreation {
     if (email == null || email!.isEmpty) return false;
     if (!_isValidEmail(email!)) return false;
+    if (username == null || username!.isEmpty) return false;
     if (firstName == null || firstName!.isEmpty) return false;
-    if (lastName == null || lastName!.isEmpty) return false;
+    // last_name is optional - no check needed
     if (password == null || password!.isEmpty) return false;
-    if (!_isValidPassword(password!)) return false;
+    // Password validation removed - API accepts simple passwords
     return true;
   }
 

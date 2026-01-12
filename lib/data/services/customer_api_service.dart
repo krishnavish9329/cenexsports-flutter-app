@@ -191,6 +191,15 @@ class CustomerApiService {
 
       // Convert customer to JSON
       final customerJson = customer.toJson();
+      
+      // Debug: Print the JSON being sent (matching cURL structure)
+      print('🔵 Creating customer with JSON:');
+      print('Email: ${customerJson['email']}');
+      print('Username: ${customerJson['username']}');
+      print('Password: ${customerJson['password'] != null ? '***' : 'null'}');
+      print('First Name: ${customerJson['first_name']}');
+      print('Last Name: ${customerJson['last_name']}');
+      print('Full JSON: $customerJson');
 
       // Make POST request to WooCommerce
       final response = await _dio.post(
