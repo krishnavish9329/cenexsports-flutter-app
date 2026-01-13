@@ -272,6 +272,53 @@ class CustomerApiService {
     }
   }
 
+  /// Update customer with billing and shipping addresses
+  /// 
+  /// [customerId] - The customer ID to update
+  /// [customer] - The customer model with billing/shipping data
+  /// Returns the updated customer data
+  /// 
+  /// Throws [CustomerApiException] on failure
+  Future<CustomerModel> updateCustomerWithBilling(int customerId, CustomerModel customer) async {
+    try {
+      // Validate customer before sending
+      if (!customer.isValidForUpdate) {
+        throw CustomerApiException(
+          'Customer validation failed. Please check all required fields.',
+          statusCode: 400,
+        );
+      }
+
+      // Convert customer to JSON (with billing/shipping)
+      final customerJson = customer.toUpdateJsonWithBilling();
+      
+      // Debug: Print the JSON being sent
+      print('Updating customer with billing/shipping JSON: $customerJson');
+
+      // Make PUT request to WooCommerce
+      final response = await _dio.put(
+        '/customers/$customerId',
+        data: customerJson,
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        // Parse and return customer response
+        return CustomerModel.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw CustomerApiException(
+          'Failed to update customer. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to update customer');
+    } catch (e) {
+      if (e is CustomerApiException) rethrow;
+      throw CustomerApiException('Unexpected error: ${e.toString()}', error: e);
+    }
+  }
+
   /// Handle DioException and convert to CustomerApiException
   CustomerApiException _handleDioException(DioException e, String defaultMessage) {
     String errorMessage = defaultMessage;

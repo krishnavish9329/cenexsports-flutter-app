@@ -41,13 +41,14 @@ class OrderModel {
   /// Convert to JSON for API request (POST /orders)
   Map<String, dynamic> toJson() {
     return {
+      if (customerId != null) 'customer_id': customerId,
       'payment_method': paymentMethod,
       'payment_method_title': paymentMethodTitle,
       'set_paid': setPaid,
+      if (status != null) 'status': status,
       'billing': billing.toJson(),
       'shipping': shipping.toJson(),
       'line_items': lineItems.map((item) => item.toJson()).toList(),
-      if (customerId != null) 'customer_id': customerId,
       if (customerNote != null && customerNote!.isNotEmpty) 'customer_note': customerNote,
     };
   }

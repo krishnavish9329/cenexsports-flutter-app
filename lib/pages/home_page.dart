@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
-import '../data/dummy_data.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/skeleton_loader.dart';
@@ -55,12 +54,22 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
-        // Fallback to dummy data
-        _products = DummyData.getProducts();
-        _featuredProducts = _products.where((p) => p.isNew).take(10).toList();
-        _bestSellers = _products.where((p) => p.isBestSeller).take(10).toList();
+        // No fallback - show empty state
+        _products = [];
+        _featuredProducts = [];
+        _bestSellers = [];
       });
     }
+  }
+
+  /// Get categories list (extracted from products)
+  List<String> _getCategories() {
+    // Extract unique categories from products
+    final categories = _products.map((p) => p.category).where((c) => c.isNotEmpty).toSet().toList();
+    if (categories.isEmpty) {
+      return ['All Products']; // Default category if no products
+    }
+    return ['All Products', ...categories];
   }
 
   @override
@@ -206,9 +215,9 @@ class _HomePageState extends State<HomePage> {
                     ),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: DummyData.getCategories().length,
+              itemCount: _getCategories().length,
               itemBuilder: (context, index) {
-                final category = DummyData.getCategories()[index];
+                final category = _getCategories()[index];
                         return _buildCategoryItem(category, categorySize);
                       },
                     ),

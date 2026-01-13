@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
+import '../presentation/pages/categories/categories_screen.dart';
 import 'category_page.dart';
 import 'cart_page.dart';
 import 'profile_page.dart';
 import '../models/product.dart';
-import '../data/dummy_data.dart';
 
 /// Main navigation wrapper with bottom navigation bar
 class MainNavigation extends StatefulWidget {
@@ -19,10 +19,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    CategoryPage(
-      categoryName: 'All Products',
-      products: DummyData.getProducts(),
-    ),
+    const CategoriesScreen(),
     const CartPage(),
     const ProfilePage(),
   ];
@@ -60,7 +57,7 @@ class _MainNavigationState extends State<MainNavigation> {
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Account',
           ),
         ],
       ),

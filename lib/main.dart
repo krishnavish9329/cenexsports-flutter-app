@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       create: (_) => CartProvider(),
       child: MaterialApp(
         title: 'Cenex Sports',
-        debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system, // Automatically switch based on system settings

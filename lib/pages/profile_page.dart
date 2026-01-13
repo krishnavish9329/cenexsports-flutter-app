@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/pages/auth_page.dart';
-import '../presentation/pages/edit_profile_page.dart';
-import '../presentation/pages/order_history_page.dart';
+import 'main_navigation.dart';
 import '../presentation/pages/customer_dashboard_page.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -13,376 +12,313 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+    final isAuthenticated = authState.isAuthenticated && authState.customer != null;
 
     return Scaffold(
+      backgroundColor: Colors.grey[100], // Light grey background for sections
       appBar: AppBar(
-        title: const Text('Profile'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        toolbarHeight: 0, // Hide default toolbar to use custom header
       ),
-      body: authState.isAuthenticated && authState.customer != null
-          ? _buildAuthenticatedProfile(context, ref, authState.customer!)
-          : _buildUnauthenticatedProfile(context),
-    );
-  }
-
-  /// Build profile when user is NOT logged in (blank state)
-  Widget _buildUnauthenticatedProfile(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingXL),
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.person_outline,
-              size: 100,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: AppTheme.spacingXL),
-            Text(
-              'Welcome!',
-              style: AppTextStyles.h2.copyWith(
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingS),
-            Text(
-              'Sign in to view your profile, orders, and more',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spacingXL),
-            SizedBox(
+            // Custom Header
+            Container(
+              color: Colors.white,
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AuthPage(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
+              child: const Text(
+                'Account',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-                child: const Text('Sign In / Create Account'),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
+            // 1. Header Section (Login CTA or User Info)
+            if (!isAuthenticated)
+              _buildLoginHeader(context)
+            else
+              _buildAuthenticatedHeader(context, authState.customer),
+            
+            const SizedBox(height: 12),
 
-  /// Build profile when user IS logged in
-  Widget _buildAuthenticatedProfile(
-    BuildContext context,
-    WidgetRef ref,
-    customer,
-  ) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // User Info Card
-          _buildUserInfoCard(context, ref, customer),
-          const SizedBox(height: AppTheme.spacingM),
-          
-          // Menu Items
-          _buildMenuSection(
-            context,
-            title: 'Account',
-            items: [
-                _MenuItem(
-                  icon: Icons.shopping_bag_outlined,
-                  title: 'My Orders',
-                  subtitle: 'View order history',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const OrderHistoryPage(),
+            // 2. Finance / Sponsored Section (Placeholder)
+            _buildSectionContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                    'Best Deals',
+                    style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue[800]!, Colors.blue[600]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    );
-                  },
-                ),
-              _MenuItem(
-                icon: Icons.favorite_border,
-                title: 'Wishlist',
-                subtitle: 'Saved items',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Wishlist coming soon')),
-                  );
-                },
-              ),
-              _MenuItem(
-                icon: Icons.location_on_outlined,
-                title: 'Addresses',
-                subtitle: 'Manage delivery addresses',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Addresses page coming soon')),
-                  );
-                },
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: AppTheme.spacingM),
-          
-          // Settings Section
-          _buildMenuSection(
-            context,
-            title: 'Settings',
-            items: [
-              _MenuItem(
-                icon: Icons.notifications_outlined,
-                title: 'Notifications',
-                subtitle: 'Manage notifications',
-                onTap: () {},
-              ),
-              _MenuItem(
-                icon: Icons.payment_outlined,
-                title: 'Payment Methods',
-                subtitle: 'Cards, UPI, etc.',
-                onTap: () {},
-              ),
-              _MenuItem(
-                icon: Icons.help_outline,
-                title: 'Help & Support',
-                subtitle: 'FAQs, contact us',
-                onTap: () {},
-              ),
-              _MenuItem(
-                icon: Icons.info_outline,
-                title: 'About',
-                subtitle: 'App version, terms',
-                onTap: () {},
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: AppTheme.spacingL),
-          
-          // Logout Button
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingM),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _showLogoutDialog(context, ref);
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.errorColor,
-                  side: const BorderSide(color: AppTheme.errorColor),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Huge Savings on Top Brands',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Get up to 50% off on your favorite products\n& free shipping on first order',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                         const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                             // Navigate to MainNavigation which defaults to Home (index 0)
+                             Navigator.pushAndRemoveUntil(
+                               context,
+                               MaterialPageRoute(
+                                 builder: (context) => const MainNavigation(),
+                               ),
+                               (route) => false,
+                             );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.yellow[700],
+                            foregroundColor: Colors.black,
+                          ),
+                          child: const Text('Buy Now'),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          
-          const SizedBox(height: AppTheme.spacingL),
-        ],
+
+             const SizedBox(height: 12),
+
+
+
+            // 4. Account Settings Section
+            _buildSectionContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Account Settings',
+                     style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildListTile(
+                    icon: Icons.translate,
+                    title: 'Select Language',
+                    onTap: () {},
+                  ),
+                  _buildListTile(
+                    icon: Icons.notifications_none,
+                    title: 'Notification Settings',
+                    onTap: () {},
+                  ),
+                  _buildListTile(
+                    icon: Icons.headset_mic_outlined,
+                    title: 'Help Center',
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+
+
+            // 6. Feedback & Information
+            _buildSectionContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Feedback & Information',
+                     style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildListTile(
+                    icon: Icons.description_outlined,
+                    title: 'Terms, Policies and Licenses',
+                    onTap: () {},
+                  ),
+                   _buildListTile(
+                    icon: Icons.help_outline,
+                    title: 'Browse FAQs',
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+
+             // Logout button if authenticated
+             if (isAuthenticated) ...[
+               const SizedBox(height: 12),
+               _buildSectionContainer(
+                 child: SizedBox(
+                   width: double.infinity,
+                   child: OutlinedButton(
+                     onPressed: () {
+                         ref.read(authProvider.notifier).logout();
+                     },
+                     style: OutlinedButton.styleFrom(
+                       foregroundColor: AppTheme.primaryColor,
+                       padding: const EdgeInsets.symmetric(vertical: 12),
+                     ),
+                     child: const Text('Log Out'),
+                   ),
+                 ),
+               ),
+             ],
+
+             const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildUserInfoCard(BuildContext context, WidgetRef ref, customer) {
+  Widget _buildSectionContainer({required Widget child}) {
     return Container(
-      margin: const EdgeInsets.all(AppTheme.spacingM),
-      padding: const EdgeInsets.all(AppTheme.spacingL),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.primaryColor,
-            AppTheme.primaryColor.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusL),
-      ),
+      color: Colors.white,
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      child: child,
+    );
+  }
+
+  Widget _buildLoginHeader(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          // Avatar
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: const Icon(
-              Icons.person,
-              size: 40,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: AppTheme.spacingM),
-          // User Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  customer.fullName,
-                  style: AppTextStyles.h3.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                  'Log in to get exclusive offers',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.grey[700],
                   ),
-                ),
-                const SizedBox(height: 4),
-                if (customer.email != null)
-                  Text(
-                    customer.email!,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                if (customer.phone.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    customer.phone,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfilePage(customer: customer),
-                      ),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white),
-                  ),
-                  child: const Text('Edit Profile'),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuSection(
-    BuildContext context, {
-    required String title,
-    required List<_MenuItem> items,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM),
-          child: Text(
-            title,
-            style: AppTextStyles.h4.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppTheme.spacingS),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM),
-          child: Column(
-            children: items.map((item) {
-              final isLast = items.last == item;
-              return Column(
-                children: [
-                  ListTile(
-                    leading: Icon(
-                      item.icon,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text(
-                      item.title,
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    subtitle: item.subtitle != null
-                        ? Text(
-                            item.subtitle!,
-                            style: AppTextStyles.bodySmall,
-                          )
-                        : null,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: item.onTap,
-                  ),
-                  if (!isLast) const Divider(height: 1),
-                ],
+          ElevatedButton(
+            onPressed: () {
+               Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AuthPage(),
+                ),
               );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Logged out successfully'),
-                    backgroundColor: AppTheme.successColor,
-                  ),
-                );
-              }
             },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: AppTheme.errorColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[700], // Brand color
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
+            child: const Text('Log In'),
           ),
         ],
       ),
     );
   }
-}
 
-class _MenuItem {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
+  Widget _buildAuthenticatedHeader(BuildContext context, dynamic customer) {
+     return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+           CircleAvatar(
+             radius: 25,
+             backgroundColor: Colors.blue[100],
+             child: Text(
+               customer.fullName.substring(0, 1).toUpperCase(),
+               style: const TextStyle(
+                 fontSize: 20,
+                 fontWeight: FontWeight.bold,
+                 color: Colors.blue,
+               ),
+             ),
+           ),
+           const SizedBox(width: 16),
+           Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
+               Text(
+                 'Hello, ${customer.fullName}',
+                 style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+               ),
+               Text(
+                 customer.email ?? '',
+                 style: AppTextStyles.bodySmall,
+               ),
+             ],
+           ),
+        ],
+      ),
+     );
+  }
 
-  _MenuItem({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    required this.onTap,
-  });
+  Widget _buildLanguageChip(String label, {bool isAction = false}) {
+    return ActionChip(
+      onPressed: () {},
+      label: Text(label),
+      backgroundColor: Colors.white,
+      side: BorderSide(color: Colors.grey[300]!),
+      labelStyle: TextStyle(
+        color: isAction ? Colors.blue[700] : Colors.black87,
+        fontWeight: isAction ? FontWeight.bold : FontWeight.normal,
+      ),
+       shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+    );
+  }
+
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: Colors.blue[700], size: 22),
+      title: Text(
+        title,
+        style: AppTextStyles.bodyLarge,
+      ),
+      trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+      onTap: onTap,
+      dense: true,
+    );
+  }
 }

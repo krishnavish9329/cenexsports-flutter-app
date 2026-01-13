@@ -8,7 +8,9 @@ import '../../data/models/shipping_model.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/line_item_model.dart';
 import '../../data/models/customer_model.dart';
+import '../../data/services/customer_api_service.dart';
 import '../providers/order_provider.dart';
+import '../providers/auth_provider.dart';
 import 'order_success_page.dart';
 
 class CheckoutPage extends ConsumerStatefulWidget {
@@ -53,13 +55,113 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   bool _sameAsBilling = true;
   String _paymentMethod = 'cod'; // Cash on Delivery
   String _paymentMethodTitle = 'Cash on Delivery';
+  bool _isLoadingCustomer = false;
+  CustomerModel? _currentCustomer;
+  int? _customerId;
+
+  // Payment method options
+  final List<Map<String, String>> _paymentMethods = [
+    {'value': 'cod', 'title': 'Cash on Delivery'},
+    {'value': 'razorpay', 'title': 'Online Payment (Razorpay)'},
+    {'value': 'stripe', 'title': 'Online Payment (Stripe)'},
+    {'value': 'upi', 'title': 'UPI'},
+  ];
 
   @override
   void initState() {
     super.initState();
     // Auto-fill form if customer data exists
     if (widget.existingCustomer != null) {
+      _currentCustomer = widget.existingCustomer;
+      _customerId = widget.existingCustomer!.id;
       _autoFillCustomerData(widget.existingCustomer!);
+    } else {
+      // Check if user is logged in
+      _checkAndLoadCustomer();
+    }
+  }
+
+  /// Check authentication state and load customer data
+  Future<void> _checkAndLoadCustomer() async {
+    final authState = ref.read(authProvider);
+    
+    if (authState.isAuthenticated && authState.customer != null) {
+      // User is logged in - auto-fill from auth state
+      _currentCustomer = authState.customer;
+      _customerId = authState.customer!.id;
+      _autoFillCustomerData(authState.customer!);
+    } else {
+      // User not logged in - ask for email first
+      await _askForEmailAndLoadCustomer();
+    }
+  }
+
+  /// Ask for email and search for customer
+  Future<void> _askForEmailAndLoadCustomer() async {
+    final emailController = TextEditingController();
+    
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Enter Email'),
+        content: TextField(
+          controller: emailController,
+          decoration: const InputDecoration(
+            labelText: 'Email Address',
+            hintText: 'john@example.com',
+            prefixIcon: Icon(Icons.email),
+          ),
+          keyboardType: TextInputType.emailAddress,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Continue as Guest'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, emailController.text.trim()),
+            child: const Text('Search'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _isLoadingCustomer = true;
+      });
+
+      try {
+        final customerApiService = ref.read(customerApiServiceProvider);
+        final customer = await customerApiService.getCustomerByEmail(result);
+        
+        if (customer != null && customer.id != null) {
+          // Customer found - auto-fill
+          _currentCustomer = customer;
+          _customerId = customer.id;
+          _autoFillCustomerData(customer);
+        } else {
+          // Customer not found - show empty form
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Customer not found. Please fill the form manually.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading customer: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoadingCustomer = false;
+        });
+      }
     }
   }
 
@@ -132,6 +234,15 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    if (_isLoadingCustomer) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Checkout')),
+        body: const Center(
+          child: CircularProgressIndicator(),
         ),
       );
     }
@@ -584,17 +695,25 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
   Widget _buildPaymentMethodSelector() {
     return Card(
-      child: RadioListTile<String>(
-        title: const Text('Cash on Delivery'),
-        subtitle: const Text('Pay when you receive'),
-        value: 'cod',
-        groupValue: _paymentMethod,
-        onChanged: (value) {
-          setState(() {
-            _paymentMethod = value ?? 'cod';
-            _paymentMethodTitle = 'Cash on Delivery';
-          });
-        },
+      child: Column(
+        children: _paymentMethods.map((method) {
+          return RadioListTile<String>(
+            title: Text(method['title']!),
+            subtitle: method['value'] == 'cod'
+                ? const Text('Pay when you receive')
+                : method['value'] == 'upi'
+                    ? const Text('Pay via UPI')
+                    : const Text('Pay securely online'),
+            value: method['value']!,
+            groupValue: _paymentMethod,
+            onChanged: (value) {
+              setState(() {
+                _paymentMethod = value ?? 'cod';
+                _paymentMethodTitle = method['title']!;
+              });
+            },
+          );
+        }).toList(),
       ),
     );
   }
@@ -771,9 +890,11 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
     // Create order model
     final order = OrderModel(
+      customerId: _customerId,
       paymentMethod: _paymentMethod,
       paymentMethodTitle: _paymentMethodTitle,
       setPaid: false, // COD orders are not paid upfront
+      status: 'pending',
       billing: billing,
       shipping: shipping,
       lineItems: lineItems,
@@ -783,6 +904,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     final success = await ref.read(orderStateProvider.notifier).placeOrder(order);
 
     if (success && mounted) {
+      // Update or create customer profile after successful order
+      await _updateOrCreateCustomer(billing, shipping);
+
       // Navigate to success page
       Navigator.pushReplacement(
         context,
@@ -794,6 +918,59 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       );
       // Clear cart after successful order
       cartProvider.clearCart();
+    }
+  }
+
+  /// Update existing customer or create new customer after order placement
+  Future<void> _updateOrCreateCustomer(
+    BillingModel billing,
+    ShippingModel shipping,
+  ) async {
+    try {
+      final customerApiService = ref.read(customerApiServiceProvider);
+      
+      if (_customerId != null) {
+        // Customer exists - update profile with billing/shipping
+        final updatedCustomer = CustomerModel(
+          id: _customerId,
+          email: billing.email,
+          firstName: billing.firstName,
+          lastName: billing.lastName,
+          billing: billing,
+          shipping: shipping,
+        );
+        
+        // Use updateCustomerWithBilling for full address update
+        await customerApiService.updateCustomerWithBilling(_customerId!, updatedCustomer);
+      } else {
+        // Guest checkout - create new customer
+        // Generate username from email
+        final username = billing.email.split('@')[0] + DateTime.now().millisecondsSinceEpoch.toString().substring(0, 4);
+        
+        final newCustomer = CustomerModel(
+          email: billing.email,
+          firstName: billing.firstName,
+          lastName: billing.lastName,
+          username: username,
+          password: 'temp_password_${DateTime.now().millisecondsSinceEpoch}', // Temporary password
+          billing: billing,
+          shipping: shipping,
+        );
+        
+        final createdCustomer = await customerApiService.createCustomer(newCustomer);
+        
+        // Save customer ID for future orders
+        if (createdCustomer.id != null) {
+          _customerId = createdCustomer.id;
+          _currentCustomer = createdCustomer;
+          
+          // Also update auth state if user wants to stay logged in
+          // This is optional - can be skipped for guest checkout
+        }
+      }
+    } catch (e) {
+      // Silent fail - order is already placed, customer update is optional
+      print('Failed to update/create customer: $e');
     }
   }
 }
