@@ -95,27 +95,7 @@ class ProductCard extends StatelessWidget {
                       ],
                       ),
                     ),
-                  // Wishlist button
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                    child: Material(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        onTap: () {},
-                        customBorder: const CircleBorder(),
-                        child: const Padding(
-                          padding: EdgeInsets.all(6),
-                          child: Icon(
-                            Icons.favorite_border,
-                            size: 18,
-                            color: Colors.grey,
-                          ),
-                          ),
-                        ),
-                      ),
-                    ),
+
                 ],
               ),
               // Content Section - Flexible to prevent overflow

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider;
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/providers/cart_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/billing_model.dart';
@@ -59,6 +60,10 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   CustomerModel? _currentCustomer;
   int? _customerId;
 
+  // New state variables
+  int _currentStep = 1; // 1: Address, 2: Summary, 3: Payment
+  bool _isEditingAddress = false;
+
   // Payment method options
   final List<Map<String, String>> _paymentMethods = [
     {'value': 'cod', 'title': 'Cash on Delivery'},
@@ -75,6 +80,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       _currentCustomer = widget.existingCustomer;
       _customerId = widget.existingCustomer!.id;
       _autoFillCustomerData(widget.existingCustomer!);
+      // If we have customer data, start in view mode
+      _isEditingAddress = false;
     } else {
       // Check if user is logged in
       _checkAndLoadCustomer();
@@ -254,46 +261,58 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.spacingM),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Order Summary Card
-              _buildOrderSummaryCard(cartProvider),
-              const SizedBox(height: AppTheme.spacingL),
+              // 1. Stepper
+              _buildStepper(),
+              
+              Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingM),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 2. Address Section (View or Edit)
+                    if (_currentCustomer != null && !_isEditingAddress)
+                      _buildSavedAddressCard()
+                    else ...[
+                      _buildSectionHeader('Billing Address', Icons.location_on),
+                      const SizedBox(height: AppTheme.spacingM),
+                      _buildBillingForm(),
+                      const SizedBox(height: AppTheme.spacingL),
+                      _buildSectionHeader('Shipping Address', Icons.local_shipping),
+                      const SizedBox(height: AppTheme.spacingM),
+                      CheckboxListTile(
+                        title: const Text('Same as billing address'),
+                        value: _sameAsBilling,
+                        onChanged: (value) {
+                          setState(() {
+                            _sameAsBilling = value ?? true;
+                            if (_sameAsBilling) {
+                              _copyBillingToShipping();
+                            }
+                          });
+                        },
+                      ),
+                      if (!_sameAsBilling) _buildShippingForm(),
+                    ],
 
-              // Billing Address Section
-              _buildSectionHeader('Billing Address', Icons.location_on),
-              const SizedBox(height: AppTheme.spacingM),
-              _buildBillingForm(),
+                    const SizedBox(height: AppTheme.spacingL),
 
-              const SizedBox(height: AppTheme.spacingL),
+                    // 3. Detailed Order Summary
+                    _buildOrderSummaryCard(cartProvider),
+                    
+                    const SizedBox(height: AppTheme.spacingL),
 
-              // Shipping Address Section
-              _buildSectionHeader('Shipping Address', Icons.local_shipping),
-              const SizedBox(height: AppTheme.spacingM),
-              CheckboxListTile(
-                title: const Text('Same as billing address'),
-                value: _sameAsBilling,
-                onChanged: (value) {
-                  setState(() {
-                    _sameAsBilling = value ?? true;
-                    if (_sameAsBilling) {
-                      _copyBillingToShipping();
-                    }
-                  });
-                },
+                    // 4. Payment Method
+                    _buildSectionHeader('Payment Method', Icons.payment),
+                    const SizedBox(height: AppTheme.spacingM),
+                    _buildPaymentMethodSelector(),
+                    
+                    const SizedBox(height: AppTheme.spacingXL),
+                  ],
+                ),
               ),
-              if (!_sameAsBilling) _buildShippingForm(),
-
-              const SizedBox(height: AppTheme.spacingL),
-
-              // Payment Method Section
-              _buildSectionHeader('Payment Method', Icons.payment),
-              const SizedBox(height: AppTheme.spacingM),
-              _buildPaymentMethodSelector(),
-
-              const SizedBox(height: AppTheme.spacingXL),
             ],
           ),
         ),
@@ -302,8 +321,132 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     );
   }
 
+  Widget _buildStepper() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          _buildStepItem(1, 'Address', _currentStep >= 1),
+          _buildStepDivider(_currentStep >= 2),
+          _buildStepItem(2, 'Order Summary', _currentStep >= 2),
+          _buildStepDivider(_currentStep >= 3),
+          _buildStepItem(3, 'Payment', _currentStep >= 3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepItem(int step, String label, bool isActive) {
+    return Column(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: isActive ? AppTheme.primaryColor : Colors.grey[300],
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: isActive
+                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                : Text(
+                    '$step',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: isActive ? Colors.black : Colors.grey,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildStepDivider(bool isActive) {
+    return Expanded(
+      child: Container(
+        height: 2,
+        color: isActive ? AppTheme.primaryColor : Colors.grey[300],
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10), // Align with circle center roughly
+        alignment: Alignment.center, // Ensure it takes up space correctly
+      ),
+    );
+  }
+
+  Widget _buildSavedAddressCard() {
+    final billing = _currentCustomer?.billing;
+    if (billing == null) return const SizedBox.shrink();
+
+    return Card(
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusM)),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Deliver to:', style: AppTextStyles.h4),
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _isEditingAddress = true;
+                    });
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    side: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  child: Text(
+                    'Change',
+                    style: TextStyle(color: AppTheme.primaryColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingS),
+            Text(
+              '${billing.firstName} ${billing.lastName}',
+              style: AppTextStyles.h4,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${billing.address1}, ${billing.city}, ${billing.state} ${billing.postcode}',
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              billing.phone,
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.grey[700]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildOrderSummaryCard(CartProvider cartProvider) {
     return Card(
+      color: Colors.white,
+      elevation: 0,
+       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusM)),
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spacingM),
         child: Column(
@@ -315,26 +458,107 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
             ),
             const Divider(),
             const SizedBox(height: AppTheme.spacingS),
+            
+            // Product List
             ...cartProvider.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppTheme.spacingS),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${item.product.name} x${item.quantity}',
-                          style: AppTextStyles.bodyMedium,
-                        ),
-                      ),
-                      Text(
-                        '₹${item.totalPrice.toStringAsFixed(0)}',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Product Image
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: item.product.imageUrl.startsWith('http') 
+                        ? CachedNetworkImage(
+                            imageUrl: item.product.imageUrl,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
+                          )
+                        : Container(color: Colors.grey[200]),
+                    ),
                   ),
-                )),
+                  const SizedBox(width: 12),
+                  // Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.product.name,
+                          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        // Size/Color placeholders (assuming data availability)
+                        Text(
+                          'Size: M, Color: Black', // Placeholder
+                          style: AppTextStyles.caption.copyWith(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 4),
+                         Row(
+                          children: [
+                            const Icon(Icons.star, size: 14, color: Colors.green),
+                            Text(
+                              ' ${item.product.rating} ',
+                              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold, color: Colors.green),
+                            ),
+                            Text(
+                              '(${item.product.reviews})',
+                              style: AppTextStyles.caption.copyWith(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                         Row(
+                          children: [
+                             Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                               child: Row(
+                                children: [
+                                  const Text('Qty: '),
+                                  Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                   const Icon(Icons.arrow_drop_down, size: 16),
+                                ],
+                               ),
+                             ),
+                             const Spacer(),
+                             if (item.product.discount > 0) ...[
+                               Text(
+                                '${item.product.discount}% OFF',
+                                style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                               ),
+                               const SizedBox(width: 8),
+                               Text(
+                                '₹${(item.product.price * 1.2).toStringAsFixed(0)}', // Fake original price for UI
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.lineThrough
+                                ),
+                               ),
+                               const SizedBox(width: 8),
+                             ],
+                             Text(
+                              '₹${item.totalPrice.toStringAsFixed(0)}',
+                              style: AppTextStyles.h4,
+                             ),
+                          ],
+                         ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )),
+
             const Divider(),
             const SizedBox(height: AppTheme.spacingS),
             _buildPriceRow('Subtotal', cartProvider.subtotal),
@@ -444,7 +668,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               controller: _billingEmailController,
               decoration: const InputDecoration(
                 labelText: 'Email *',
-                hintText: 'john.doe@example.com',
+                hintText: 'your@gmail.com',
                 prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,

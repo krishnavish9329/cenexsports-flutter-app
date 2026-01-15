@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
+import '../services/api_service.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/skeleton_loader.dart';
@@ -11,12 +12,14 @@ import 'product_detail_page.dart';
 
 class CategoryPage extends StatefulWidget {
   final String categoryName;
-  final List<Product> products;
+  final int? categoryId;
+  final List<Product>? products; // Made optional, will fetch if categoryId is provided
 
   const CategoryPage({
     super.key,
     required this.categoryName,
-    required this.products,
+    this.categoryId,
+    this.products,
   });
 
   @override
@@ -28,6 +31,54 @@ class _CategoryPageState extends State<CategoryPage> {
   String _sortBy = 'Default';
   String _filterBy = 'All';
   final ScrollController _scrollController = ScrollController();
+  
+  List<Product> _products = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    // If products are provided, use them
+    if (widget.products != null) {
+      setState(() {
+        _products = widget.products!;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // If categoryId is provided, fetch products by category
+    if (widget.categoryId != null) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      try {
+        final products = await ApiService.getProductsByCategory(widget.categoryId!);
+        setState(() {
+          _products = products;
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+          _products = [];
+        });
+      }
+    } else {
+      setState(() {
+        _products = [];
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -36,7 +87,7 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   List<Product> get _filteredProducts {
-    var products = List<Product>.from(widget.products);
+    var products = List<Product>.from(_products);
 
     // Apply filter
     if (_filterBy != 'All') {
@@ -86,11 +137,15 @@ class _CategoryPageState extends State<CategoryPage> {
           ),
         ],
       ),
-      body: widget.products.isEmpty
-          ? _buildEmptyState()
-          : _isGridView
-              ? _buildGridView()
-              : _buildListView(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? _buildErrorState()
+              : _products.isEmpty
+                  ? _buildEmptyState()
+                  : _isGridView
+                      ? _buildGridView()
+                      : _buildListView(),
     );
   }
 
@@ -237,19 +292,56 @@ class _CategoryPageState extends State<CategoryPage> {
           Icon(
             Icons.inventory_2_outlined,
             size: 64,
-            color: Colors.grey[400],
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
           ),
           const SizedBox(height: AppTheme.spacingM),
           Text(
             'No products found',
-            style: AppTextStyles.h4,
+            style: AppTextStyles.h4.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: AppTheme.spacingS),
           Text(
             'Try adjusting your filters',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: Colors.grey[600],
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: AppTheme.spacingM),
+          Text(
+            'Error loading products',
+            style: AppTextStyles.h4.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingS),
+          Text(
+            _errorMessage ?? 'Unknown error',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppTheme.spacingL),
+          ElevatedButton(
+            onPressed: _loadProducts,
+            child: const Text('Retry'),
           ),
         ],
       ),
@@ -266,7 +358,7 @@ class _CategoryPageState extends State<CategoryPage> {
       builder: (context) => _FilterBottomSheet(
         sortBy: _sortBy,
         filterBy: _filterBy,
-        categories: widget.products.map((p) => p.category).toSet().toList(),
+        categories: _products.map((p) => p.category).toSet().toList(),
         onSortChanged: (value) {
           setState(() {
             _sortBy = value;

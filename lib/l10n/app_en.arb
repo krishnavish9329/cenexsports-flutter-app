@@ -1,0 +1,91 @@
+{
+  "@@locale": "en",
+  "appTitle": "Cenex Sports",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Home tab label"
+  },
+  "categories": "Categories",
+  "@categories": {
+    "description": "Categories tab label"
+  },
+  "cart": "Cart",
+  "@cart": {
+    "description": "Cart tab label"
+  },
+  "account": "Account",
+  "@account": {
+    "description": "Account tab label"
+  },
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Select language option"
+  },
+  "english": "English",
+  "@english": {
+    "description": "English language name"
+  },
+  "hindi": "Hindi",
+  "@hindi": {
+    "description": "Hindi language name"
+  },
+  "allProducts": "All Products",
+  "@allProducts": {
+    "description": "All products label"
+  },
+  "search": "Search",
+  "@search": {
+    "description": "Search label"
+  },
+  "addToCart": "Add to Cart",
+  "@addToCart": {
+    "description": "Add to cart button"
+  },
+  "price": "Price",
+  "@price": {
+    "description": "Price label"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Description label"
+  },
+  "checkout": "Checkout",
+  "@checkout": {
+    "description": "Checkout label"
+  },
+  "total": "Total",
+  "@total": {
+    "description": "Total label"
+  },
+  "continueShopping": "Continue Shopping",
+  "@continueShopping": {
+    "description": "Continue shopping button"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile label"
+  },
+  "orders": "Orders",
+  "@orders": {
+    "description": "Orders label"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings label"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout button"
+  },
+  "login": "Login",
+  "@login": {
+    "description": "Login button"
+  },
+  "signup": "Sign Up",
+  "@signup": {
+    "description": "Sign up button"
+  }
+}

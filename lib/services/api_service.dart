@@ -49,5 +49,43 @@ class ApiService {
       throw Exception('Error fetching product: $e');
     }
   }
+
+  // Search products
+  static Future<List<Product>> searchProducts(String query) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/products?search=$query'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Product.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to search products: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error searching products: $e');
+    }
+  }
+
+  // Get products by category ID
+  static Future<List<Product>> getProductsByCategory(int categoryId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/products?category=$categoryId'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Product.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching products by category: $e');
+    }
+  }
 }
 

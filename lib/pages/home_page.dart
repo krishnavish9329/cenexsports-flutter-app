@@ -11,6 +11,7 @@ import '../core/providers/cart_provider.dart';
 import 'product_detail_page.dart';
 import 'category_page.dart';
 import 'cart_page.dart';
+import 'search_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -110,10 +111,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
+
           Stack(
             children: [
           IconButton(
@@ -175,24 +173,34 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               children: [
                 Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                        decoration: InputDecoration(
-                        hintText: 'Search for products, brands and more',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.camera_alt_outlined),
-                            onPressed: () {},
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SearchPage()),
+                        );
+                      },
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: _searchController,
+                            decoration: InputDecoration(
+                            hintText: 'Search for products, brands and more',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.camera_alt_outlined),
+                                onPressed: () {},
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                           ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
                         ),
                       ),
                     ),

@@ -113,10 +113,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       appBar: AppBar(
         title: const Text('Product Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {},
-          ),
+
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {},
@@ -537,9 +534,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         isInCart
                             ? '${product.name} updated in cart'
                             : '${product.name} added to cart',
+                        style: const TextStyle(color: Colors.white),
                       ),
-                      backgroundColor: AppTheme.successColor,
+                      backgroundColor: Colors.black,
                       behavior: SnackBarBehavior.floating,
+                      margin: const EdgeInsets.only(
+                        bottom: 100,
+                        left: 16,
+                        right: 16,
+                      ),
                     ),
                   );
                 },
@@ -550,6 +553,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: BorderSide(color: AppTheme.primaryColor),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
@@ -573,9 +577,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: const StadiumBorder(),
                 ),
-                child: const Text(
-                  'Buy Now',
+                child: Text(
+                  'Buy at ₹${product.price.toStringAsFixed(0)}',
                   style: AppTextStyles.button,
                 ),
               ),

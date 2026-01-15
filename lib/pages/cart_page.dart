@@ -7,6 +7,7 @@ import '../core/theme/app_theme.dart';
 import '../widgets/section_header.dart';
 import '../presentation/pages/checkout_page.dart';
 import 'product_detail_page.dart';
+import 'main_navigation.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -89,7 +90,14 @@ class _CartPageState extends State<CartPage> {
           const SizedBox(height: AppTheme.spacingXL),
           ElevatedButton.icon(
             onPressed: () {
-              Navigator.pop(context);
+              // Navigate to home page (index 0) in main navigation
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MainNavigation(initialIndex: 0),
+                ),
+                (route) => false, // Remove all previous routes
+              );
             },
             icon: const Icon(Icons.shopping_bag_outlined),
             label: const Text('Continue Shopping'),

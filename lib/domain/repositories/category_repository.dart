@@ -3,6 +3,8 @@ import '../../data/services/category_api_service.dart';
 
 abstract class CategoryRepository {
   Future<List<CategoryModel>> getCategories();
+  Future<List<CategoryModel>> getAllCategories();
+  Future<List<CategoryModel>> getSubCategories(int parentId);
 }
 
 class CategoryRepositoryImpl implements CategoryRepository {
@@ -15,8 +17,26 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<List<CategoryModel>> getCategories() async {
     try {
       final categories = await _apiService.getCategories();
-      // Filter for top-level categories only (parent == 0)
-      return categories.where((c) => c.parent == 0).toList();
+      // Already filtered for top-level categories (parent == 0) in API service
+      return categories;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<CategoryModel>> getAllCategories() async {
+    try {
+      return await _apiService.getAllCategories();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<CategoryModel>> getSubCategories(int parentId) async {
+    try {
+      return await _apiService.getSubCategories(parentId);
     } catch (e) {
       rethrow;
     }
