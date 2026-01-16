@@ -85,16 +85,16 @@ class CustomerModel {
     return json;
   }
   
-  /// Convert to JSON for update request with billing (old API - kept separate)
+  /// Convert to JSON for update request with billing and shipping addresses
+  /// Note: email and username are NOT included as they cannot be updated
   Map<String, dynamic> toUpdateJsonWithBilling() {
     final json = <String, dynamic>{};
     
     if (firstName != null) json['first_name'] = firstName;
     if (lastName != null) json['last_name'] = lastName;
-    if (username != null) json['username'] = username;
-    if (email != null) json['email'] = email;
+    // Username and email are read-only - NOT included in update request
     if (billing != null) json['billing'] = billing!.toJson();
-    // Only include shipping if it has meaningful data
+    // Include shipping if it has meaningful data
     if (shipping != null && 
         (shipping!.address1.isNotEmpty || 
          shipping!.city.isNotEmpty || 

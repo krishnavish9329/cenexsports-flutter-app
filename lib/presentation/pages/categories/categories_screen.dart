@@ -94,29 +94,29 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               final sidebarWidth = isMobile ? 80.0 : 100.0;
               final iconSize = isMobile ? 40.0 : 50.0;
               final fontSize = isMobile ? 10.0 : 11.0;
-              
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // --- SIDEBAR ---
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- SIDEBAR ---
                   SizedBox(
                     width: sidebarWidth,
                     child: Container(
                       color: Theme.of(context).scaffoldBackgroundColor,
-                      child: ListView.builder(
+                child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: displayCategories.length,
-                        itemBuilder: (context, index) {
+                  itemBuilder: (context, index) {
                           final category = displayCategories[index];
-                          final isSelected = category.id == currentParentId;
-                          
-                          return InkWell(
-                            onTap: () {
-                              setState(() {
-                                _selectedParentId = category.id;
-                              });
-                            },
-                            child: Container(
+                    final isSelected = category.id == currentParentId;
+                    
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedParentId = category.id;
+                        });
+                      },
+                      child: Container(
                               color: isSelected
                                   ? Theme.of(context).cardColor
                                   : Colors.transparent,
@@ -124,44 +124,44 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                 vertical: isMobile ? 12 : 16,
                                 horizontal: isMobile ? 4 : 8,
                               ),
-                              child: Row(
+                        child: Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Selection Indicator
-                                  if (isSelected)
-                                    Container(
+                          children: [
+                            // Selection Indicator
+                            if (isSelected)
+                              Container(
                                       width: 3,
                                       height: isMobile ? 50 : 60,
-                                      decoration: BoxDecoration(
+                                decoration: BoxDecoration(
                                         color: Theme.of(context).colorScheme.primary,
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                    ),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
                                   if (isSelected) SizedBox(width: isMobile ? 2 : 4),
-                                  
-                                  Expanded(
-                                    child: Column(
+                            
+                            Expanded(
+                              child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        // Sidebar Icon/Image
-                                        Container(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // Sidebar Icon/Image
+                                  Container(
                                           width: iconSize,
                                           height: iconSize,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
                                             color: Theme.of(context)
                                                 .colorScheme
                                                 .onSurface
                                                 .withOpacity(0.1),
                                             image: category.imageSrc != null &&
                                                     category.imageSrc!.isNotEmpty
-                                                ? DecorationImage(
-                                                    image: NetworkImage(category.imageSrc!),
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : null,
-                                          ),
+                                        ? DecorationImage(
+                                            image: NetworkImage(category.imageSrc!),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                    ),
                                           child: category.imageSrc == null ||
                                                   category.imageSrc!.isEmpty
                                               ? Opacity(
@@ -175,16 +175,16 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                                         .withOpacity(0.6),
                                                   ),
                                                 )
-                                              : null,
-                                        ),
+                                        : null,
+                                  ),
                                         SizedBox(height: isMobile ? 6 : 8),
                                         Flexible(
                                           child: Text(
-                                            category.name,
-                                            textAlign: TextAlign.center,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
+                                    category.name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
                                               fontSize: fontSize,
                                               fontWeight:
                                                   isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -195,36 +195,36 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                                       .onSurface
                                                       .withOpacity(0.7),
                                             ),
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          );
-                        },
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
+                      ),
+                ),
+              ),
 
-                  // --- CONTENT AREA ---
-                  Expanded(
-                    child: Container(
+              // --- CONTENT AREA ---
+              Expanded(
+                child: Container(
                       color: Theme.of(context).scaffoldBackgroundColor,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header for the content area
-                          Padding(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header for the content area
+                      Padding(
                             padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    currentCategory.name,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                currentCategory.name,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18 * ResponsiveHelper.getFontScale(context),
@@ -232,22 +232,22 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                          
-                          Expanded(
+                          ],
+                        ),
+                      ),
+                      
+                      Expanded(
                             child: subCategoriesAsyncValue.when(
                               data: (subCategories) {
                                 if (subCategories.isEmpty) {
                                   return Center(
                                     child: Padding(
                                       padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
                                           Icon(
                                             Icons.style_outlined,
                                             size: 60,
@@ -256,10 +256,10 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                                 .onSurface
                                                 .withOpacity(0.3),
                                           ),
-                                          const SizedBox(height: 16),
+                                    const SizedBox(height: 16),
                                           Flexible(
                                             child: Text(
-                                              'Browse all ${currentCategory.name}',
+                                      'Browse all ${currentCategory.name}',
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                 color: Theme.of(context)
@@ -271,21 +271,21 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                               overflow: TextOverflow.ellipsis,
                                               maxLines: 2,
                                             ),
-                                          ),
-                                          const SizedBox(height: 24),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) => CategoryPage(
-                                                    categoryName: currentCategory.name,
+                                    ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                         Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => CategoryPage(
+                                                categoryName: currentCategory.name,
                                                     categoryId: currentCategory.id,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
+                                              ),
+                                            ),
+                                          );
+                                      },
+                                      style: ElevatedButton.styleFrom(
                                               backgroundColor:
                                                   Theme.of(context).colorScheme.primary,
                                               foregroundColor:
@@ -294,11 +294,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                                 horizontal: 32 * ResponsiveHelper.getFontScale(context),
                                                 vertical: 12,
                                               ),
-                                            ),
-                                            child: const Text('View Products'),
-                                          ),
-                                        ],
                                       ),
+                                      child: const Text('View Products'),
+                                    ),
+                                  ],
+                                ),
                                     ),
                                   );
                                 }
@@ -313,44 +313,44 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                     childAspectRatio: 0.8,
                                     crossAxisSpacing: ResponsiveHelper.getPadding(context),
                                     mainAxisSpacing: ResponsiveHelper.getPadding(context),
-                                  ),
-                                  itemCount: subCategories.length,
-                                  itemBuilder: (context, index) {
-                                    final subCat = subCategories[index];
-                                    return InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => CategoryPage(
-                                              categoryName: subCat.name,
+                                ),
+                                itemCount: subCategories.length,
+                                itemBuilder: (context, index) {
+                                  final subCat = subCategories[index];
+                                  return InkWell(
+                                    onTap: () {
+                                       Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => CategoryPage(
+                                                categoryName: subCat.name,
                                               categoryId: subCat.id,
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                      child: Column(
+                                          );
+                                    },
+                                    child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
+                                      children: [
                                           Flexible(
                                             child: Container(
                                               height: itemSize,
                                               width: itemSize,
-                                              decoration: BoxDecoration(
+                                          decoration: BoxDecoration(
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .onSurface
                                                     .withOpacity(0.05),
-                                                shape: BoxShape.circle,
+                                            shape: BoxShape.circle,
                                                 image: subCat.imageSrc != null &&
                                                         subCat.imageSrc!.isNotEmpty
-                                                    ? DecorationImage(
-                                                        image: NetworkImage(subCat.imageSrc!),
-                                                        fit: BoxFit.cover,
-                                                      )
-                                                    : null,
-                                              ),
+                                              ? DecorationImage(
+                                                  image: NetworkImage(subCat.imageSrc!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : null,
+                                          ),
                                               child: subCat.imageSrc == null ||
                                                       subCat.imageSrc!.isEmpty
                                                   ? Icon(
@@ -361,29 +361,29 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                                           .withOpacity(0.4),
                                                       size: itemSize * 0.4,
                                                     )
-                                                  : null,
-                                            ),
+                                              : null,
+                                        ),
                                           ),
                                           SizedBox(height: isMobile ? 6 : 8),
                                           Flexible(
                                             child: Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                               child: Text(
-                                                subCat.name,
-                                                textAlign: TextAlign.center,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
+                                          subCat.name,
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                   fontSize: (isMobile ? 11 : 12) * ResponsiveHelper.getFontScale(context),
                                                   color: Theme.of(context).colorScheme.onSurface,
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                                 );
                               },
                               loading: () => const Center(child: CircularProgressIndicator()),
@@ -439,13 +439,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
+                              ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
+              ),
+            ],
               );
             },
           );

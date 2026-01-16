@@ -31,6 +31,7 @@ class BillingModel {
     return {
       'first_name': firstName,
       'last_name': lastName,
+      'company': company,
       'address_1': address1,
       'address_2': address2,
       'city': city,
@@ -39,7 +40,6 @@ class BillingModel {
       'country': country,
       'email': email,
       'phone': phone,
-      // Company field removed from API request
     };
   }
 
