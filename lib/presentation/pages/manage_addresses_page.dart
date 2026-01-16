@@ -142,7 +142,7 @@ class _ManageAddressesPageState extends ConsumerState<ManageAddressesPage> {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: SingleChildScrollView(
-            padding: ResponsiveHelper.getPadding(context),
+            padding: ResponsiveHelper.getPaddingEdgeInsets(context),
             child: Form(
               key: _formKey,
               child: Column(

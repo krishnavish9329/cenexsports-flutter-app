@@ -73,4 +73,39 @@ class ResponsiveHelper {
   static bool isDesktop(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1200;
   }
+
+  /// Get max content width for centered layouts
+  static double getMaxContentWidth(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 800.0; // Desktop
+    if (width > 600) return 600.0; // Tablet
+    return double.infinity; // Mobile - full width
+  }
+
+  /// Get responsive button height
+  static double getButtonHeight(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 56.0; // Desktop
+    if (width > 600) return 52.0; // Tablet
+    return 48.0; // Mobile
+  }
+
+  /// Get responsive padding as EdgeInsets
+  static EdgeInsets getPaddingEdgeInsets(BuildContext context) {
+    final padding = getPadding(context);
+    return EdgeInsets.all(padding);
+  }
+
+  /// Get responsive icon size
+  static double getIconSize(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 28.0; // Desktop
+    if (width > 600) return 24.0; // Tablet
+    return 20.0; // Mobile
+  }
+
+  /// Get responsive text scale
+  static double getTextScale(BuildContext context) {
+    return getFontScale(context);
+  }
 }
