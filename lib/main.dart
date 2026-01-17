@@ -48,8 +48,7 @@ class MyApp extends ConsumerWidget {
         title: 'Cenex Sports',
       debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
         locale: locale,
         localizationsDelegates: [
           AppLocalizations.delegate,
