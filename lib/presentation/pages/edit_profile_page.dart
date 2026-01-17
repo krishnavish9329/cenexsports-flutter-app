@@ -67,7 +67,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 controller: _firstNameController,
                 decoration: const InputDecoration(
                   labelText: 'First Name *',
-                  hintText: 'Krishna',
+                  hintText: 'First Name',
                   prefixIcon: Icon(Icons.person),
                 ),
                 validator: (value) {
@@ -83,7 +83,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 controller: _lastNameController,
                 decoration: const InputDecoration(
                   labelText: 'Last Name',
-                  hintText: 'Vish',
+                  hintText: 'Last Name',
                   prefixIcon: Icon(Icons.person),
                 ),
                 // Last name is optional
@@ -105,7 +105,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 controller: TextEditingController(text: widget.customer.username ?? ''),
                 decoration: const InputDecoration(
                   labelText: 'Username',
-                  hintText: 'krishna123',
+                  hintText: 'Username123',
                   prefixIcon: Icon(Icons.account_circle),
                 ),
                 enabled: false, // Username cannot be changed (read-only)

@@ -64,9 +64,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Product Details'),
-        ),
         body: const Center(
           child: CircularProgressIndicator(),
         ),
@@ -75,9 +72,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
     if (_errorMessage != null || _product == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Product Details'),
-        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -110,16 +104,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Product Details'),
-        actions: [
-
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {},
-          ),
-        ],
-      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -230,6 +214,35 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                 ),
               ],
+            ),
+          ),
+          
+          // Back Button - Top Left
+          SafeArea(
+            child: Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                margin: const EdgeInsets.all(AppTheme.spacingM),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  color: Colors.black87,
+                ),
+              ),
             ),
           ),
           

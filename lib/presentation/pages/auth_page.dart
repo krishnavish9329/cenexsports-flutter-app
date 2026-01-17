@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../../data/models/customer_model.dart';
 import '../../data/models/billing_model.dart';
+import '../../data/models/shipping_model.dart';
 import 'checkout_page.dart';
 
 /// Authentication page with Login and Signup tabs
@@ -36,9 +37,23 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
   final _signupUsernameController = TextEditingController();
   final _signupPasswordController = TextEditingController();
   final _signupConfirmPasswordController = TextEditingController();
+  
+  // Billing Address controllers
+  final _address1Controller = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _postcodeController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  // Shipping Address controllers (for different address)
+  final _shippingAddress1Controller = TextEditingController();
+  final _shippingCityController = TextEditingController();
+  final _shippingStateController = TextEditingController();
+  final _shippingPostcodeController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _useSameAddressForShipping = true; // Default: use same address
 
   @override
   void initState() {
@@ -52,6 +67,10 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
         _tabController.animateTo(1);
       });
     }
+    // Listen to first name changes to update username placeholder
+    _signupFirstNameController.addListener(() {
+      setState(() {}); // Rebuild to update username hint text
+    });
   }
 
   @override
@@ -64,6 +83,15 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
     _signupUsernameController.dispose();
     _signupPasswordController.dispose();
     _signupConfirmPasswordController.dispose();
+    _address1Controller.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _postcodeController.dispose();
+    _phoneController.dispose();
+    _shippingAddress1Controller.dispose();
+    _shippingCityController.dispose();
+    _shippingStateController.dispose();
+    _shippingPostcodeController.dispose();
     super.dispose();
   }
 
@@ -209,7 +237,7 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               controller: _signupFirstNameController,
               decoration: const InputDecoration(
                 labelText: 'First Name *',
-                hintText: 'krishna',
+                hintText: 'First Name',
                 prefixIcon: Icon(Icons.person),
               ),
               validator: (value) {
@@ -224,7 +252,7 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               controller: _signupLastNameController,
               decoration: const InputDecoration(
                 labelText: 'Last Name',
-                hintText: 'vish',
+                hintText: 'Last Name',
                 prefixIcon: Icon(Icons.person),
               ),
               // Last name is optional - no validator
@@ -234,7 +262,7 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               controller: _signupEmailController,
               decoration: const InputDecoration(
                 labelText: 'Email *',
-                hintText: 'krishna@gmail.com',
+                hintText: 'user@gmail.com',
                 prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
@@ -251,10 +279,12 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
             const SizedBox(height: AppTheme.spacingM),
             TextFormField(
               controller: _signupUsernameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Username *',
-                hintText: 'krishna123',
-                prefixIcon: Icon(Icons.account_circle),
+                hintText: _signupFirstNameController.text.isNotEmpty 
+                    ? _signupFirstNameController.text.toLowerCase()
+                    : 'User',
+                prefixIcon: const Icon(Icons.account_circle),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -319,6 +349,202 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
                 return null;
               },
             ),
+            const SizedBox(height: AppTheme.spacingXL),
+            // Address Section
+            Text(
+              'Address Information',
+              style: AppTextStyles.h4,
+            ),
+            const SizedBox(height: AppTheme.spacingM),
+            TextFormField(
+              controller: _address1Controller,
+              decoration: const InputDecoration(
+                labelText: 'Address Line 1 *',
+                hintText: '123 Main Street',
+                prefixIcon: Icon(Icons.home),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Address is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: AppTheme.spacingM),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _cityController,
+                    decoration: const InputDecoration(
+                      labelText: 'City *',
+                      hintText: 'Ahmedabad',
+                      prefixIcon: Icon(Icons.location_city),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'City is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingM),
+                Expanded(
+                  child: TextFormField(
+                    controller: _stateController,
+                    decoration: const InputDecoration(
+                      labelText: 'State *',
+                      hintText: 'GJ',
+                      prefixIcon: Icon(Icons.map),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'State is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingM),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _postcodeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Postcode *',
+                      hintText: '380001',
+                      prefixIcon: Icon(Icons.pin_drop),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Postcode is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingM),
+                Expanded(
+                  child: TextFormField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone *',
+                      hintText: '9876543210',
+                      prefixIcon: Icon(Icons.phone),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Phone is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingL),
+            // Shipping Address Section
+            Text(
+              'Shipping Address',
+              style: AppTextStyles.h4,
+            ),
+            const SizedBox(height: AppTheme.spacingS),
+            CheckboxListTile(
+              title: const Text('Use same address for shipping'),
+              value: _useSameAddressForShipping,
+              onChanged: (value) {
+                setState(() {
+                  _useSameAddressForShipping = value ?? true;
+                });
+              },
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+            if (!_useSameAddressForShipping) ...[
+              const SizedBox(height: AppTheme.spacingM),
+              TextFormField(
+                controller: _shippingAddress1Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Shipping Address Line 1 *',
+                  hintText: '123 Main Street',
+                  prefixIcon: Icon(Icons.home),
+                ),
+                validator: (value) {
+                  if (!_useSameAddressForShipping) {
+                    if (value == null || value.isEmpty) {
+                      return 'Shipping address is required';
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingM),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _shippingCityController,
+                      decoration: const InputDecoration(
+                        labelText: 'Shipping City *',
+                        hintText: 'Ahmedabad',
+                        prefixIcon: Icon(Icons.location_city),
+                      ),
+                      validator: (value) {
+                        if (!_useSameAddressForShipping) {
+                          if (value == null || value.isEmpty) {
+                            return 'Shipping city is required';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingM),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _shippingStateController,
+                      decoration: const InputDecoration(
+                        labelText: 'Shipping State *',
+                        hintText: 'GJ',
+                        prefixIcon: Icon(Icons.map),
+                      ),
+                      validator: (value) {
+                        if (!_useSameAddressForShipping) {
+                          if (value == null || value.isEmpty) {
+                            return 'Shipping state is required';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spacingM),
+              TextFormField(
+                controller: _shippingPostcodeController,
+                decoration: const InputDecoration(
+                  labelText: 'Shipping Postcode *',
+                  hintText: '380001',
+                  prefixIcon: Icon(Icons.pin_drop),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (!_useSameAddressForShipping) {
+                    if (value == null || value.isEmpty) {
+                      return 'Shipping postcode is required';
+                    }
+                  }
+                  return null;
+                },
+              ),
+            ],
             const SizedBox(height: AppTheme.spacingXL),
             if (authState.error != null)
               Container(
@@ -400,8 +626,44 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
 
     ref.read(authProvider.notifier).clearError();
 
+    // Create billing address
+    final billing = BillingModel(
+      firstName: _signupFirstNameController.text.trim(),
+      lastName: _signupLastNameController.text.trim().isEmpty 
+          ? _signupFirstNameController.text.trim() 
+          : _signupLastNameController.text.trim(),
+      address1: _address1Controller.text.trim(),
+      city: _cityController.text.trim(),
+      state: _stateController.text.trim(),
+      postcode: _postcodeController.text.trim(),
+      country: 'IN', // Default to India
+      email: _signupEmailController.text.trim(),
+      phone: _phoneController.text.trim(),
+    );
+
+    // Create shipping address (same as billing or different based on checkbox)
+    final shipping = ShippingModel(
+      firstName: _signupFirstNameController.text.trim(),
+      lastName: _signupLastNameController.text.trim().isEmpty 
+          ? _signupFirstNameController.text.trim() 
+          : _signupLastNameController.text.trim(),
+      address1: _useSameAddressForShipping 
+          ? _address1Controller.text.trim()
+          : _shippingAddress1Controller.text.trim(),
+      city: _useSameAddressForShipping 
+          ? _cityController.text.trim()
+          : _shippingCityController.text.trim(),
+      state: _useSameAddressForShipping 
+          ? _stateController.text.trim()
+          : _shippingStateController.text.trim(),
+      postcode: _useSameAddressForShipping 
+          ? _postcodeController.text.trim()
+          : _shippingPostcodeController.text.trim(),
+      country: 'IN', // Default to India
+    );
+
     // Create customer model - matching cURL API structure
-    // Only: email, username, password, first_name, last_name (optional)
+    // Include: email, username, password, first_name, last_name, billing, shipping
     final customer = CustomerModel(
       email: _signupEmailController.text.trim(),
       firstName: _signupFirstNameController.text.trim(),
@@ -410,7 +672,8 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
           : _signupLastNameController.text.trim(),
       username: _signupUsernameController.text.trim(),
       password: _signupPasswordController.text.trim(),
-      // No billing/shipping in creation - keep it simple
+      billing: billing,
+      shipping: shipping,
     );
 
     final success = await ref.read(authProvider.notifier).register(customer);

@@ -34,19 +34,21 @@ class CustomerModel {
   });
 
   /// Convert to JSON for API request (POST /customers) and storage
-  /// If password is present, it's a creation request - send only: email, username, password, first_name, last_name
+  /// If password is present, it's a creation request - send: email, username, password, first_name, last_name, billing, shipping
   /// Otherwise, it's for storage/response - include all fields
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     
-    // If password exists, this is a creation request - send minimal fields matching cURL API
+    // If password exists, this is a creation request - include billing and shipping addresses
     if (password != null) {
       if (email != null) json['email'] = email;
       if (username != null) json['username'] = username;
       json['password'] = password;
       if (firstName != null) json['first_name'] = firstName;
       if (lastName != null && lastName!.isNotEmpty) json['last_name'] = lastName;
-      // Don't include id, billing, shipping, etc. for creation
+      // Include billing and shipping addresses in creation request
+      if (billing != null) json['billing'] = billing!.toJson();
+      if (shipping != null) json['shipping'] = shipping!.toJson();
       return json;
     }
     
