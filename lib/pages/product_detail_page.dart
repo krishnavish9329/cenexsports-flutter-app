@@ -8,6 +8,7 @@ import '../services/api_service.dart';
 import '../widgets/price_widget.dart';
 import '../widgets/rating_widget.dart';
 import '../widgets/skeleton_loader.dart';
+import '../widgets/product_card.dart';
 import '../core/theme/app_theme.dart';
 import '../core/providers/cart_provider.dart';
 import 'cart_page.dart';
@@ -33,6 +34,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _isDescriptionExpanded = false;
   String? _selectedSize;
   String? _selectedColor;
+  List<Product> _relatedProducts = [];
+  bool _isRelatedLoading = false;
 
   @override
   void initState() {
@@ -52,10 +55,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         _product = product;
         _isLoading = false;
       });
+
+      // Load related products based on category
+      _loadRelatedProducts(product.category);
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadRelatedProducts(String categoryName) async {
+    setState(() {
+      _isRelatedLoading = true;
+    });
+
+    try {
+      // Fetch all products and filter by same category
+      final allProducts = await ApiService.getProducts();
+      final related = allProducts
+          .where((p) => p.category == categoryName && p.id != _product?.id)
+          .take(8)
+          .toList();
+
+      setState(() {
+        _relatedProducts = related;
+        _isRelatedLoading = false;
+      });
+    } catch (_) {
+      // Silently ignore related errors
+      setState(() {
+        _relatedProducts = [];
+        _isRelatedLoading = false;
       });
     }
   }
@@ -208,7 +240,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       
                       // Specifications
                       _buildSpecifications(product),
-                      
+
+                      const SizedBox(height: AppTheme.spacingL),
+
+                      // Related products (same category)
+                      _buildRelatedSection(),
+
                       const SizedBox(height: 100), // Space for sticky buttons
                     ],
                   ),
@@ -515,6 +552,62 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRelatedSection() {
+    if (_isRelatedLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppTheme.spacingM),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_relatedProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Related Products',
+          style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: AppTheme.spacingM),
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _relatedProducts.length,
+            padding: const EdgeInsets.only(right: AppTheme.spacingM),
+            itemBuilder: (context, index) {
+              final related = _relatedProducts[index];
+              return Container(
+                width: 180,
+                margin: EdgeInsets.only(
+                  left: index == 0 ? 0 : AppTheme.spacingM,
+                ),
+                child: ProductCard(
+                  product: related,
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProductDetailPage(
+                          productId: int.parse(related.id),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

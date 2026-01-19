@@ -180,7 +180,7 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
             TextFormField(
               controller: _loginEmailOrPhoneController,
               decoration: InputDecoration(
-                hintText: 'john@example.com or +91 9876543210',
+                hintText: 'john@example.com',
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(

@@ -319,6 +319,38 @@ class CustomerApiService {
     }
   }
 
+  /// Delete a customer (hard delete with force=true)
+  ///
+  /// This matches the cURL:
+  /// DELETE /customers/{id}?force=true
+  ///
+  /// Throws [CustomerApiException] on failure
+  Future<void> deleteCustomer(int customerId, {bool force = true}) async {
+    try {
+      final response = await _dio.delete(
+        '/customers/$customerId',
+        queryParameters: {
+          'force': force.toString(),
+        },
+      );
+
+      // WooCommerce returns 200 with deleted object, or 204
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return;
+      } else {
+        throw CustomerApiException(
+          'Failed to delete customer. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to delete customer');
+    } catch (e) {
+      if (e is CustomerApiException) rethrow;
+      throw CustomerApiException('Unexpected error: ${e.toString()}', error: e);
+    }
+  }
+
   /// Handle DioException and convert to CustomerApiException
   CustomerApiException _handleDioException(DioException e, String defaultMessage) {
     String errorMessage = defaultMessage;

@@ -17,6 +17,7 @@ import 'product_detail_page.dart';
 import 'category_page.dart';
 import 'cart_page.dart';
 import 'search_page.dart';
+import '../presentation/pages/categories/categories_screen.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -103,12 +104,12 @@ class _HomePageState extends ConsumerState<HomePage> {
           controller: _scrollController,
           slivers: [
           // Custom Header with Location and Icons
-          SliverAppBar(
-            pinned: true,
-            floating: false,
+            SliverAppBar(
+              pinned: true,
+              floating: false,
             backgroundColor: Colors.white,
         elevation: 0,
-            automaticallyImplyLeading: false,
+              automaticallyImplyLeading: false,
             expandedHeight: 120,
             flexibleSpace: FlexibleSpaceBar(
               background: _buildCustomHeader(context, cartProvider),
@@ -125,86 +126,86 @@ class _HomePageState extends ConsumerState<HomePage> {
 
           // On Sale Section
           if (_isLoading)
-            SliverToBoxAdapter(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final itemWidth = ResponsiveHelper.getHorizontalListItemWidth(context);
-                  final listHeight = ResponsiveHelper.getHorizontalListHeight(context);
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: listHeight,
-                      minHeight: 280,
-                    ),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: ResponsiveHelper.getPadding(context),
+              SliverToBoxAdapter(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = ResponsiveHelper.getHorizontalListItemWidth(context);
+                    final listHeight = ResponsiveHelper.getHorizontalListHeight(context);
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: listHeight,
+                        minHeight: 280,
                       ),
-                      itemCount: 2,
-                      itemBuilder: (context, index) => Container(
-                        width: itemWidth,
-                        margin: EdgeInsets.only(
-                          right: ResponsiveHelper.getPadding(context),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: ResponsiveHelper.getPadding(context),
                         ),
-                        child: const ProductCardSkeleton(),
+                      itemCount: 2,
+                        itemBuilder: (context, index) => Container(
+                          width: itemWidth,
+                          margin: EdgeInsets.only(
+                            right: ResponsiveHelper.getPadding(context),
+                          ),
+                          child: const ProductCardSkeleton(),
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            )
+                    );
+                  },
+                ),
+              )
           else if (_onSaleProducts.isNotEmpty)
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SectionHeader(
+              SliverToBoxAdapter(
+                        child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                    SectionHeader(
                     title: 'On Sale',
-                    actionLabel: 'See All',
-                    onActionTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CategoryPage(
+                      actionLabel: 'See All',
+                      onActionTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CategoryPage(
                             categoryName: 'On Sale',
                             products: _onSaleProducts,
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final itemWidth = ResponsiveHelper.getHorizontalListItemWidth(context);
-                      final listHeight = ResponsiveHelper.getHorizontalListHeight(context);
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: listHeight,
-                          minHeight: 280,
-                        ),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: ResponsiveHelper.getPadding(context),
                           ),
+                        );
+                      },
+                    ),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final itemWidth = ResponsiveHelper.getHorizontalListItemWidth(context);
+                        final listHeight = ResponsiveHelper.getHorizontalListHeight(context);
+                        return ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: listHeight,
+                            minHeight: 280,
+                          ),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: ResponsiveHelper.getPadding(context),
+                            ),
                           itemCount: _onSaleProducts.length > 2 ? 2 : _onSaleProducts.length,
-                          itemBuilder: (context, index) {
+                            itemBuilder: (context, index) {
                             final product = _onSaleProducts[index];
-                            return Container(
-                              width: itemWidth,
-                              margin: EdgeInsets.only(
-                                right: ResponsiveHelper.getPadding(context),
-                              ),
+                              return Container(
+                                width: itemWidth,
+                                margin: EdgeInsets.only(
+                                  right: ResponsiveHelper.getPadding(context),
+                                ),
                               child: _buildOnSaleProductCard(product),
-                            );
-                          },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                ),
-              ],
-            ),
-          ),
+              ),
 
             // Best Sellers Section - Responsive Grid
             if (_isLoading)
@@ -231,9 +232,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               )
             else if (_bestSellers.isNotEmpty)
               SliverToBoxAdapter(
-                        child: Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                  children: [
                     SectionHeader(
                       title: 'Best Sellers',
                       actionLabel: 'See All',
@@ -531,11 +532,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const Icon(Icons.search, size: 20, color: Colors.grey),
                         const SizedBox(width: 8),
                         Expanded(
-            child: Text(
+                          child: Text(
                             'ruched top',
-              style: TextStyle(
+                            style: TextStyle(
                               color: Colors.grey[600],
-                fontSize: 14,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -544,17 +545,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              // Filter Button
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF5D4037),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                ),
-                child: const Icon(Icons.tune, color: Colors.white, size: 24),
               ),
             ],
           ),
@@ -732,7 +722,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CategoriesScreen(),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'See All',
                       style: TextStyle(
@@ -765,7 +762,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildCircularCategoryItem(CategoryModel category) {
-    return GestureDetector(
+      return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -780,13 +777,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Container(
         width: 70,
         margin: const EdgeInsets.only(right: AppTheme.spacingM),
-        child: Column(
-          children: [
+          child: Column(
+            children: [
             // Circular Icon/Image
             Container(
               width: 70,
               height: 70,
-              decoration: BoxDecoration(
+                decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
                 border: Border.all(color: Colors.grey[200]!, width: 1),
@@ -814,16 +811,16 @@ class _HomePageState extends ConsumerState<HomePage> {
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
+                    fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildOnSaleProductCard(Product product) {

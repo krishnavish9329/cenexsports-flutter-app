@@ -45,22 +45,16 @@ class _CartPageState extends State<CartPage> {
             : null,
         title: Text(
           cartProvider.isEmpty ? 'Cart' : 'Cart (${cartProvider.itemCount})',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
         ),
       ),
       body: cartProvider.isEmpty
           ? _buildEmptyState()
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.spacingM,
-                    AppTheme.spacingS,
-                    AppTheme.spacingM,
-                    AppTheme.spacingS,
-                  ),
-                  child: _buildDeliveryInfoCard(),
-                ),
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(AppTheme.spacingM),

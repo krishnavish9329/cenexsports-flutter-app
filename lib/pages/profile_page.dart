@@ -70,7 +70,10 @@ class ProfilePage extends ConsumerWidget {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.blue[800]!, Colors.blue[600]!],
+                        colors: [
+                          AppTheme.brownButtonColor.withOpacity(0.9),
+                          AppTheme.brownButtonColor,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -107,8 +110,12 @@ class ProfilePage extends ConsumerWidget {
                              );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.yellow[700],
-                            foregroundColor: Colors.black,
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppTheme.brownButtonColor,
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                           child: const Text('Buy Now'),
                         )
@@ -292,7 +299,7 @@ class ProfilePage extends ConsumerWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700], // Brand color
+              backgroundColor: AppTheme.brownButtonColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               shape: RoundedRectangleBorder(

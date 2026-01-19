@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 /// App-wide design constants and theme configuration
 class AppTheme {
   // Color Palette
-  static const Color primaryColor = Color(0xFF2874F0);
-  static const Color secondaryColor = Color(0xFFFF6B35);
+  static const Color primaryColor = Color(0xFF8B4513); // Brown primary color
+  static const Color secondaryColor = Color(0xFFFFC107);
   static const Color successColor = Color(0xFF4CAF50);
   static const Color errorColor = Color(0xFFE53935);
   static const Color warningColor = Color(0xFFFF9800);

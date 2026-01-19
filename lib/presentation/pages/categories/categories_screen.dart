@@ -65,388 +65,21 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             );
           }
 
-          // 1. Filter Top-Level Categories (Parent == 0)
-          final parentCategories = allCategoriesFromAPI.where((c) => c.parent == 0).toList();
-          
-          // If no parent categories found, show all categories as parent categories
-          // This helps show categories like "Sari" even if they're not top-level
-          final displayCategories = parentCategories.isEmpty 
-              ? allCategoriesFromAPI 
-              : parentCategories;
-          
-          // Default selection to the first parent if not set
-          if (_selectedParentId == null && displayCategories.isNotEmpty) {
-             _selectedParentId = displayCategories.first.id;
-          }
-          
-          final currentParentId = _selectedParentId ?? (displayCategories.isNotEmpty ? displayCategories.first.id : 0);
-          final currentCategory = displayCategories.firstWhere(
-            (c) => c.id == currentParentId, 
-            orElse: () => displayCategories.isNotEmpty ? displayCategories.first : allCategoriesFromAPI.first,
-          );
+          // Use top-level categories if available, otherwise all
+          final parentCategories =
+              allCategoriesFromAPI.where((c) => c.parent == 0).toList();
+          final displayCategories =
+              parentCategories.isNotEmpty ? parentCategories : allCategoriesFromAPI;
 
-          // 2. Fetch Sub-Categories for the selected parent using provider
-          final subCategoriesAsyncValue = ref.watch(subCategoriesProvider(currentParentId));
-
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final isMobile = ResponsiveHelper.isMobile(context);
-              final sidebarWidth = isMobile ? 80.0 : 100.0;
-              final iconSize = isMobile ? 40.0 : 50.0;
-              final fontSize = isMobile ? 10.0 : 11.0;
-
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- SIDEBAR ---
-                  SizedBox(
-                    width: sidebarWidth,
-                    child: Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: displayCategories.length,
-                  itemBuilder: (context, index) {
-                          final category = displayCategories[index];
-                    final isSelected = category.id == currentParentId;
-                    
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedParentId = category.id;
-                        });
-                      },
-                      child: Container(
-                              color: isSelected
-                                  ? Theme.of(context).cardColor
-                                  : Colors.transparent,
-                              padding: EdgeInsets.symmetric(
-                                vertical: isMobile ? 12 : 16,
-                                horizontal: isMobile ? 4 : 8,
-                              ),
-                        child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Selection Indicator
-                            if (isSelected)
-                              Container(
-                                      width: 3,
-                                      height: isMobile ? 50 : 60,
-                                decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                                  if (isSelected) SizedBox(width: isMobile ? 2 : 4),
-                            
-                            Expanded(
-                              child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // Sidebar Icon/Image
-                                  Container(
-                                          width: iconSize,
-                                          height: iconSize,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withOpacity(0.1),
-                                            image: category.imageSrc != null &&
-                                                    category.imageSrc!.isNotEmpty
-                                        ? DecorationImage(
-                                            image: NetworkImage(category.imageSrc!),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
-                                    ),
-                                          child: category.imageSrc == null ||
-                                                  category.imageSrc!.isEmpty
-                                              ? Opacity(
-                                                  opacity: 0.5,
-                                                  child: Icon(
-                                                    Icons.category_outlined,
-                                                    size: iconSize * 0.5,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface
-                                                        .withOpacity(0.6),
-                                                  ),
-                                                )
-                                        : null,
-                                  ),
-                                        SizedBox(height: isMobile ? 6 : 8),
-                                        Flexible(
-                                          child: Text(
-                                    category.name,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                              fontSize: fontSize,
-                                              fontWeight:
-                                                  isSelected ? FontWeight.w600 : FontWeight.normal,
-                                              color: isSelected
-                                                  ? Theme.of(context).colorScheme.onSurface
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface
-                                                      .withOpacity(0.7),
-                                            ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                      ),
-                ),
-              ),
-
-              // --- CONTENT AREA ---
-              Expanded(
-                child: Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header for the content area
-                      Padding(
-                            padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                currentCategory.name,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18 * ResponsiveHelper.getFontScale(context),
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      Expanded(
-                            child: subCategoriesAsyncValue.when(
-                              data: (subCategories) {
-                                if (subCategories.isEmpty) {
-                                  return Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                          Icon(
-                                            Icons.style_outlined,
-                                            size: 60,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withOpacity(0.3),
-                                          ),
-                                    const SizedBox(height: 16),
-                                          Flexible(
-                                            child: Text(
-                                      'Browse all ${currentCategory.name}',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withOpacity(0.7),
-                                                fontSize: 16 * ResponsiveHelper.getFontScale(context),
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                            ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                         Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => CategoryPage(
-                                                categoryName: currentCategory.name,
-                                                    categoryId: currentCategory.id,
-                                              ),
-                                            ),
-                                          );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Theme.of(context).colorScheme.primary,
-                                              foregroundColor:
-                                                  Theme.of(context).colorScheme.onPrimary,
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 32 * ResponsiveHelper.getFontScale(context),
-                                                vertical: 12,
-                                              ),
-                                      ),
-                                      child: const Text('View Products'),
-                                    ),
-                                  ],
-                                ),
-                                    ),
-                                  );
-                                }
-                                
-                                final crossAxisCount = ResponsiveHelper.getGridCrossAxisCount(context);
-                                final itemSize = isMobile ? 60.0 : 70.0;
-                                
-                                return GridView.builder(
-                                  padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    childAspectRatio: 0.8,
-                                    crossAxisSpacing: ResponsiveHelper.getPadding(context),
-                                    mainAxisSpacing: ResponsiveHelper.getPadding(context),
-                                ),
-                                itemCount: subCategories.length,
-                                itemBuilder: (context, index) {
-                                  final subCat = subCategories[index];
-                                  return InkWell(
-                                    onTap: () {
-                                       Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => CategoryPage(
-                                                categoryName: subCat.name,
-                                              categoryId: subCat.id,
-                                              ),
-                                            ),
-                                          );
-                                    },
-                                    child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                          Flexible(
-                                            child: Container(
-                                              height: itemSize,
-                                              width: itemSize,
-                                          decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withOpacity(0.05),
-                                            shape: BoxShape.circle,
-                                                image: subCat.imageSrc != null &&
-                                                        subCat.imageSrc!.isNotEmpty
-                                              ? DecorationImage(
-                                                  image: NetworkImage(subCat.imageSrc!),
-                                                  fit: BoxFit.cover,
-                                                )
-                                              : null,
-                                          ),
-                                              child: subCat.imageSrc == null ||
-                                                      subCat.imageSrc!.isEmpty
-                                                  ? Icon(
-                                                      Icons.image_not_supported_outlined,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withOpacity(0.4),
-                                                      size: itemSize * 0.4,
-                                                    )
-                                              : null,
-                                        ),
-                                          ),
-                                          SizedBox(height: isMobile ? 6 : 8),
-                                          Flexible(
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                              child: Text(
-                                          subCat.name,
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: (isMobile ? 11 : 12) * ResponsiveHelper.getFontScale(context),
-                                                  color: Theme.of(context).colorScheme.onSurface,
-                                                ),
-                                              ),
-                                            ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                );
-                              },
-                              loading: () => const Center(child: CircularProgressIndicator()),
-                              error: (error, stack) => Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline,
-                                        size: 60,
-                                        color: Theme.of(context).colorScheme.error,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Flexible(
-                                        child: Text(
-                                          'Failed to load subcategories',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Theme.of(context).colorScheme.onSurface,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => CategoryPage(
-                                                categoryName: currentCategory.name,
-                                                categoryId: currentCategory.id,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              Theme.of(context).colorScheme.primary,
-                                          foregroundColor:
-                                              Theme.of(context).colorScheme.onPrimary,
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 32 * ResponsiveHelper.getFontScale(context),
-                                            vertical: 12,
-                                          ),
-                                        ),
-                                        child: const Text('View Products'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-              );
+          return ListView.builder(
+            padding: EdgeInsets.symmetric(
+              horizontal: ResponsiveHelper.getPadding(context),
+              vertical: ResponsiveHelper.getPadding(context),
+            ),
+            itemCount: displayCategories.length,
+            itemBuilder: (context, index) {
+              final category = displayCategories[index];
+              return _buildCategoryBannerCard(context, category);
             },
           );
         },
@@ -458,6 +91,250 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildCategoryBannerCard(BuildContext context, CategoryModel category) {
+  final borderRadius = BorderRadius.circular(16);
+
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SubCategoriesPage(parentCategory: category),
+        ),
+      );
+    },
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      height: 180,
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        color: Colors.grey[200],
+      ),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: Stack(
+          children: [
+            // Background image
+            Positioned.fill(
+              child: category.imageSrc != null && category.imageSrc!.isNotEmpty
+                  ? Image.network(
+                      category.imageSrc!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.image,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                    ),
+            ),
+            // Gradient overlay (left side) for text readability
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.5),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
+              ),
+            ),
+            // Category name text
+            Positioned(
+              left: 20,
+              top: 0,
+              bottom: 0,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  category.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Page that shows subcategories for a given parent category
+/// in a 2-column grid with large image cards (like the provided design).
+class SubCategoriesPage extends ConsumerWidget {
+  final CategoryModel parentCategory;
+
+  const SubCategoriesPage({super.key, required this.parentCategory});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subCategoriesAsync = ref.watch(subCategoriesProvider(parentCategory.id));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          parentCategory.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        actions: const [
+          Icon(Icons.swap_vert),
+          SizedBox(width: 12),
+          Icon(Icons.sort),
+          SizedBox(width: 8),
+        ],
+      ),
+      body: subCategoriesAsync.when(
+        data: (subCategories) {
+          if (subCategories.isEmpty) {
+            // If no subcategories, fall back to showing products of parent category
+            return Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CategoryPage(
+                        categoryName: parentCategory.name,
+                        categoryId: parentCategory.id,
+                      ),
+                    ),
+                  );
+                },
+                child: Text('View ${parentCategory.name} Products'),
+              ),
+            );
+          }
+
+          final padding = ResponsiveHelper.getPadding(context);
+
+          return GridView.builder(
+            padding: EdgeInsets.all(padding),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.72,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: subCategories.length,
+            itemBuilder: (context, index) {
+              final subCat = subCategories[index];
+              return _SubCategoryCard(subCategory: subCat);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Text(
+            'Failed to load categories',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubCategoryCard extends StatelessWidget {
+  final CategoryModel subCategory;
+
+  const _SubCategoryCard({required this.subCategory});
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(18);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CategoryPage(
+              categoryName: subCategory.name,
+              categoryId: subCategory.id,
+            ),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: subCategory.imageSrc != null && subCategory.imageSrc!.isNotEmpty
+                  ? Image.network(
+                      subCategory.imageSrc!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.image,
+                        color: Colors.grey,
+                      ),
+                    ),
+            ),
+            // Light card background overlay for rounded-rectangle feel
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: borderRadius,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ),
+            // Category name at top-left
+            Positioned(
+              left: 10,
+              top: 10,
+              child: Text(
+                subCategory.name,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  shadows: [
+                    Shadow(
+                      color: Colors.white70,
+                      offset: Offset(0, 0),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

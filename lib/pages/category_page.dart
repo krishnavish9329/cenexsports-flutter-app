@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../widgets/product_card.dart';
-import '../widgets/section_header.dart';
-import '../widgets/skeleton_loader.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/responsive_helper.dart';
 import '../core/providers/cart_provider.dart';
+import '../data/models/category_model.dart';
+import '../data/services/category_api_service.dart';
 import 'product_detail_page.dart';
 
 class CategoryPage extends StatefulWidget {
@@ -36,10 +36,64 @@ class _CategoryPageState extends State<CategoryPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  // Subcategories for this category (if any)
+  List<CategoryModel> _subCategories = [];
+  bool _isSubCategoriesLoading = true;
+  String? _subCategoriesError;
+
+  late final CategoryApiService _categoryApiService;
+
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    _categoryApiService = CategoryApiService();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    // Try to load subcategories first for this category
+    if (widget.categoryId != null) {
+      await _loadSubCategories();
+    } else {
+      _isSubCategoriesLoading = false;
+    }
+
+    // If there are no subcategories, load products for this category
+    if (_subCategories.isEmpty) {
+      await _loadProducts();
+    } else {
+      setState(() {
+        _isLoading = false; // show subcategories view only
+      });
+    }
+  }
+
+  Future<void> _loadSubCategories() async {
+    setState(() {
+      _isSubCategoriesLoading = true;
+      _subCategoriesError = null;
+    });
+
+    try {
+      if (widget.categoryId != null) {
+        final subs = await _categoryApiService.getSubCategories(widget.categoryId!);
+        setState(() {
+          _subCategories = subs;
+          _isSubCategoriesLoading = false;
+        });
+      } else {
+        setState(() {
+          _subCategories = [];
+          _isSubCategoriesLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _subCategories = [];
+        _subCategoriesError = e.toString();
+        _isSubCategoriesLoading = false;
+      });
+    }
   }
 
   Future<void> _loadProducts() async {
@@ -117,35 +171,130 @@ class _CategoryPageState extends State<CategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = _isLoading || _isSubCategoriesLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.categoryName),
         actions: [
           IconButton(
-            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () {
-              setState(() {
-                _isGridView = !_isGridView;
-              });
-            },
-            tooltip: _isGridView ? 'List View' : 'Grid View',
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.sort),
             onPressed: _showFilterBottomSheet,
-            tooltip: 'Filter & Sort',
+            tooltip: 'Sort & Filter',
           ),
         ],
       ),
-      body: _isLoading
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? _buildErrorState()
-              : _products.isEmpty
-                  ? _buildEmptyState()
-                  : _isGridView
-                      ? _buildGridView()
-                      : _buildListView(),
+          : _subCategoriesError != null
+              ? _buildErrorState(_subCategoriesError)
+              : _subCategories.isNotEmpty
+                  ? _buildSubCategoriesView()
+                  : _errorMessage != null
+                      ? _buildErrorState(_errorMessage)
+                      : _products.isEmpty
+                          ? _buildEmptyState()
+                          : _isGridView
+                              ? _buildGridView()
+                              : _buildListView(),
+    );
+  }
+
+  /// Sub-category grid view (Women -> Co-ords, Two Set, etc.)
+  Widget _buildSubCategoriesView() {
+    final subs = _subCategories;
+
+    return GridView.builder(
+      controller: _scrollController,
+      padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: AppTheme.spacingM,
+        mainAxisSpacing: AppTheme.spacingM,
+        childAspectRatio: 0.75,
+      ),
+      itemCount: subs.length,
+      itemBuilder: (context, index) {
+        final subCat = subs[index];
+        return _buildSubCategoryCard(subCat);
+      },
+    );
+  }
+
+  Widget _buildSubCategoryCard(CategoryModel subCat) {
+    final borderRadius = BorderRadius.circular(AppTheme.radiusL);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CategoryPage(
+              categoryName: subCat.name,
+              categoryId: subCat.id,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          color: Colors.grey[200],
+        ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: subCat.imageSrc != null && subCat.imageSrc!.isNotEmpty
+                    ? Image.network(
+                        subCat.imageSrc!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      ),
+              ),
+              // Top-left gradient + name text
+              Positioned(
+                left: 8,
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    subCat.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -313,7 +462,7 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(String? message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -325,14 +474,14 @@ class _CategoryPageState extends State<CategoryPage> {
           ),
           const SizedBox(height: AppTheme.spacingM),
           Text(
-            'Error loading products',
+            'Error',
             style: AppTextStyles.h4.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: AppTheme.spacingS),
           Text(
-            _errorMessage ?? 'Unknown error',
+            message ?? 'Unknown error',
             style: AppTextStyles.bodyMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),

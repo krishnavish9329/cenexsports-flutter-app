@@ -248,6 +248,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Delete current customer account
+  ///
+  /// Sends DELETE /customers/{id}?force=true and clears local auth on success.
+  Future<bool> deleteAccount(int customerId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _apiService.deleteCustomer(customerId, force: true);
+
+      // Clear local auth storage and reset state
+      await AuthStorageService.clearAuth();
+      state = AuthState();
+      return true;
+    } catch (e) {
+      String errorMessage = 'Failed to delete account';
+      if (e is CustomerApiException) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = e.toString();
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        error: errorMessage,
+      );
+      return false;
+    }
+  }
+
   /// Logout
   Future<void> logout() async {
     await AuthStorageService.clearAuth();

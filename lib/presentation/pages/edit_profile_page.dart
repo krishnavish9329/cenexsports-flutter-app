@@ -262,6 +262,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
               const SizedBox(height: AppTheme.spacingL),
+
+              // Delete Account button
+              if (widget.customer.id != null)
+                TextButton(
+                  onPressed: authState.isLoading ? null : _confirmDeleteAccount,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.errorColor,
+                  ),
+                  child: const Text('Delete Account'),
+                ),
+              const SizedBox(height: AppTheme.spacingL),
             ],
           ),
         ),
@@ -362,6 +373,68 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    if (widget.customer.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Customer ID not found'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'Are you sure you want to permanently delete your account? '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppTheme.errorColor),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
+    // Call auth provider to delete account
+    final notifier = ref.read(authProvider.notifier);
+    final success = await notifier.deleteAccount(widget.customer.id!);
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pop(context); // Close EditProfilePage
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account deleted successfully'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+    } else {
+      final error = ref.read(authProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Failed to delete account'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     }
   }
 }

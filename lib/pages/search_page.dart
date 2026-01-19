@@ -125,10 +125,7 @@ class _SearchPageState extends State<SearchPage> {
                     });
                   },
                 )
-              : IconButton(
-                  icon: const Icon(Icons.camera_alt_outlined, color: Colors.black),
-                  onPressed: () {},
-                ),
+              : null,
           ),
           style: const TextStyle(color: Colors.black, fontSize: 16),
         ),
