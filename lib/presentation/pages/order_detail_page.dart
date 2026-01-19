@@ -4,8 +4,11 @@ import '../../data/models/order_model.dart';
 import '../../data/models/billing_model.dart';
 import '../../data/models/shipping_model.dart';
 
+import '../../data/services/order_api_service.dart';
+import '../../presentation/pages/order_history_page.dart';
+
 /// Order Detail Page - Shows invoice/bill for a single order
-class OrderDetailPage extends StatelessWidget {
+class OrderDetailPage extends StatefulWidget {
   final OrderModel order;
 
   const OrderDetailPage({
@@ -14,10 +17,85 @@ class OrderDetailPage extends StatelessWidget {
   });
 
   @override
+  State<OrderDetailPage> createState() => _OrderDetailPageState();
+}
+
+class _OrderDetailPageState extends State<OrderDetailPage> {
+  late OrderModel _order;
+  bool _isCancelling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _order = widget.order;
+  }
+
+  Future<void> _cancelOrder() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: const Text('Are you sure you want to cancel this order? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No, Keep Order'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Yes, Cancel Order'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() {
+        _isCancelling = true;
+      });
+
+      try {
+        final apiService = OrderApiService();
+        final updatedOrder = await apiService.cancelOrder(_order.id!);
+        
+        setState(() {
+          _order = updatedOrder;
+          _isCancelling = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Order cancelled successfully'),
+              backgroundColor: AppTheme.successColor,
+            ),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isCancelling = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${order.id ?? 'N/A'}'),
+        title: Text('Order #${_order.id ?? 'N/A'}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -44,15 +122,38 @@ class OrderDetailPage extends StatelessWidget {
             const SizedBox(height: AppTheme.spacingM),
             
             // Billing Address
-            _buildAddressSection('Billing Address', order.billing),
+            _buildAddressSection('Billing Address', _order.billing),
             const SizedBox(height: AppTheme.spacingM),
             
             // Shipping Address
-            _buildAddressSection('Shipping Address', order.shipping),
+            _buildAddressSection('Shipping Address', _order.shipping),
             const SizedBox(height: AppTheme.spacingM),
             
             // Payment Info
             _buildPaymentInfo(),
+            
+            const SizedBox(height: AppTheme.spacingL),
+            
+            // Cancel Button
+            if (_order.status == 'pending' || _order.status == 'processing')
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isCancelling ? null : _cancelOrder,
+                  icon: _isCancelling 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.cancel_outlined),
+                  label: Text(_isCancelling ? 'Cancelling...' : 'Cancel Order'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.errorColor,
+                    side: const BorderSide(color: AppTheme.errorColor),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+              
+            const SizedBox(height: AppTheme.spacingXL),
           ],
         ),
       ),
@@ -70,18 +171,18 @@ class OrderDetailPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Order #${order.id ?? 'N/A'}',
+                  'Order #${_order.id ?? 'N/A'}',
                   style: AppTextStyles.h3.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                _buildStatusChip(order.status ?? 'pending'),
+                _buildStatusChip(_order.status ?? 'pending'),
               ],
             ),
             const SizedBox(height: AppTheme.spacingS),
-            if (order.dateCreated != null)
+            if (_order.dateCreated != null)
               Text(
-                'Date: ${_formatDate(order.dateCreated!)}',
+                'Date: ${_formatDate(_order.dateCreated!)}',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -89,7 +190,7 @@ class OrderDetailPage extends StatelessWidget {
             const Divider(),
             const SizedBox(height: AppTheme.spacingS),
             _buildPriceRow('Subtotal', _calculateSubtotal()),
-            _buildPriceRow('Tax', order.total != null ? (order.total! - _calculateSubtotal()) : 0),
+            _buildPriceRow('Tax', _order.total != null ? (_order.total! - _calculateSubtotal()) : 0),
             const Divider(),
             const SizedBox(height: AppTheme.spacingS),
             Row(
@@ -102,7 +203,7 @@ class OrderDetailPage extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '₹${order.total?.toStringAsFixed(0) ?? '0'}',
+                  '₹${_order.total?.toStringAsFixed(0) ?? '0'}',
                   style: AppTextStyles.h3.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
@@ -130,7 +231,8 @@ class OrderDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppTheme.spacingM),
-            ...order.lineItems.map((item) => Padding(
+            const SizedBox(height: AppTheme.spacingM),
+            ..._order.lineItems.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: AppTheme.spacingS),
                   child: Row(
                     children: [
@@ -232,8 +334,8 @@ class OrderDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppTheme.spacingS),
-            _buildInfoRow('Payment Method', order.paymentMethodTitle),
-            _buildInfoRow('Status', order.setPaid ? 'Paid' : 'Pending'),
+            _buildInfoRow('Payment Method', _order.paymentMethodTitle),
+            _buildInfoRow('Status', _order.setPaid ? 'Paid' : 'Pending'),
           ],
         ),
       ),
@@ -319,7 +421,7 @@ class OrderDetailPage extends StatelessWidget {
   }
 
   double _calculateSubtotal() {
-    return order.lineItems.fold(
+    return _order.lineItems.fold(
       0.0,
       (sum, item) => sum + ((item.price ?? 0) * item.quantity),
     );

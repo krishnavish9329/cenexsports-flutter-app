@@ -9,6 +9,7 @@ import 'main_navigation.dart';
 import '../presentation/pages/customer_dashboard_page.dart';
 import '../presentation/pages/edit_profile_page.dart';
 import '../presentation/pages/manage_addresses_page.dart';
+import '../presentation/pages/order_history_page.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -172,6 +173,19 @@ class ProfilePage extends ConsumerWidget {
                             builder: (context) => ManageAddressesPage(
                               customer: authState.customer!,
                             ),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildListTile(
+                      context: context,
+                      icon: Icons.shopping_bag_outlined,
+                      title: 'My Orders',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrderHistoryPage(),
                           ),
                         );
                       },

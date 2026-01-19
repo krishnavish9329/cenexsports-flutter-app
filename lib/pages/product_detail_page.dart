@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
@@ -13,8 +13,11 @@ import '../core/theme/app_theme.dart';
 import '../core/providers/cart_provider.dart';
 import 'cart_page.dart';
 import '../presentation/pages/email_checkout_page.dart';
+import '../presentation/pages/checkout_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../presentation/providers/auth_provider.dart';
 
-class ProductDetailPage extends StatefulWidget {
+class ProductDetailPage extends ConsumerStatefulWidget {
   final int productId;
 
   const ProductDetailPage({
@@ -23,10 +26,10 @@ class ProductDetailPage extends StatefulWidget {
   });
 
   @override
-  State<ProductDetailPage> createState() => _ProductDetailPageState();
+  ConsumerState<ProductDetailPage> createState() => _ProductDetailPageState();
 }
 
-class _ProductDetailPageState extends State<ProductDetailPage> {
+class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   Product? _product;
   bool _isLoading = true;
   String? _errorMessage;
@@ -612,7 +615,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildStickyButtons(Product product) {
-    final cartProvider = Provider.of<CartProvider>(context);
+    final cartProvider = provider.Provider.of<CartProvider>(context);
     final isInCart = cartProvider.isInCart(product.id);
 
     return Container(
@@ -671,13 +674,27 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   if (!isInCart) {
                     cartProvider.addToCart(product);
                   }
-                  // Navigate to email-first checkout
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EmailCheckoutPage(),
-                    ),
-                  );
+                  
+                  // Check if user is logged in
+                  final authState = ref.read(authProvider);
+                  
+                  if (authState.isAuthenticated) {
+                    // Navigate directly to checkout
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CheckoutPage(),
+                      ),
+                    );
+                  } else {
+                    // Navigate to email-first checkout for login/guest
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EmailCheckoutPage(),
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,

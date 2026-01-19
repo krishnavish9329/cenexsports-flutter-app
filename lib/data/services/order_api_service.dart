@@ -170,6 +170,35 @@ class OrderApiService {
     }
   }
 
+  /// Cancel an order
+  /// 
+  /// [orderId] - The ID of the order to cancel
+  /// Returns the updated order model
+  /// 
+  /// Throws [OrderApiException] on failure
+  Future<OrderModel> cancelOrder(int orderId) async {
+    try {
+      final response = await _dio.put(
+        '/orders/$orderId',
+        data: {'status': 'cancelled'},
+      );
+
+      if (response.statusCode == 200) {
+        return OrderModel.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw OrderApiException(
+          'Failed to cancel order. Status: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to cancel order');
+    } catch (e) {
+      if (e is OrderApiException) rethrow;
+      throw OrderApiException('Unexpected error: ${e.toString()}', error: e);
+    }
+  }
+
   /// Handle DioException and convert to OrderApiException
   OrderApiException _handleDioException(DioException e, String defaultMessage) {
     String errorMessage = defaultMessage;

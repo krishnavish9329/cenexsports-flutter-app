@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/order_model.dart';
+import 'order_history_page.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   final OrderModel order;
@@ -175,10 +176,10 @@ class OrderSuccessPage extends StatelessWidget {
               const SizedBox(height: AppTheme.spacingM),
               TextButton(
                 onPressed: () {
-                  // Navigate to orders page (if implemented)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Orders page coming soon'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const OrderHistoryPage(),
                     ),
                   );
                 },
