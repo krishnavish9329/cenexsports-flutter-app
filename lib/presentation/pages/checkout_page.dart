@@ -822,48 +822,128 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         padding: const EdgeInsets.all(AppTheme.spacingM),
         child: Column(
           children: [
+            // First Name & Last Name Row
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _billingFirstNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'First Name *',
-                      hintText: 'John',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'First name is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'First Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _billingFirstNameController,
+                        decoration: InputDecoration(
+                          hintText: 'John',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'First name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingM),
                 Expanded(
-                  child: TextFormField(
-                    controller: _billingLastNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Last Name *',
-                      hintText: 'Doe',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Last name is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Last Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _billingLastNameController,
+                        decoration: InputDecoration(
+                          hintText: 'Doe',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Last name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Email
+            const Text(
+              'Email',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _billingEmailController,
-              decoration: const InputDecoration(
-                labelText: 'Email *',
+              decoration: InputDecoration(
                 hintText: 'your@gmail.com',
-                prefixIcon: Icon(Icons.email),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -877,12 +957,35 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Phone
+            const Text(
+              'Phone',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _billingPhoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone *',
+              decoration: InputDecoration(
                 hintText: '+91 9876543210',
-                prefixIcon: Icon(Icons.phone),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               keyboardType: TextInputType.phone,
               validator: (value) {
@@ -893,19 +996,67 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Company
+            const Text(
+              'Company',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _billingCompanyController,
-              decoration: const InputDecoration(
-                labelText: 'Company (Optional)',
+              decoration: InputDecoration(
                 hintText: 'Company Name',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Address Line 1
+            const Text(
+              'Address Line 1',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _billingAddress1Controller,
-              decoration: const InputDecoration(
-                labelText: 'Address Line 1 *',
+              decoration: InputDecoration(
                 hintText: 'Street address',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               maxLines: 2,
               validator: (value) {
@@ -916,56 +1067,161 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Address Line 2
+            const Text(
+              'Address Line 2',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _billingAddress2Controller,
-              decoration: const InputDecoration(
-                labelText: 'Address Line 2 (Optional)',
+              decoration: InputDecoration(
                 hintText: 'Apartment, suite, etc.',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               maxLines: 2,
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // City & State Row
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _billingCityController,
-                    decoration: const InputDecoration(
-                      labelText: 'City *',
-                      hintText: 'Mumbai',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'City is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'City',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _billingCityController,
+                        decoration: InputDecoration(
+                          hintText: 'Mumbai',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'City is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingM),
                 Expanded(
-                  child: TextFormField(
-                    controller: _billingStateController,
-                    decoration: const InputDecoration(
-                      labelText: 'State *',
-                      hintText: 'Maharashtra',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'State is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'State',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _billingStateController,
+                        decoration: InputDecoration(
+                          hintText: 'Maharashtra',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'State is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Postcode
+            const Text(
+              'Postcode',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _billingPostcodeController,
-              decoration: const InputDecoration(
-                labelText: 'Postcode *',
+              decoration: InputDecoration(
                 hintText: '400001',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -987,55 +1243,160 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         padding: const EdgeInsets.all(AppTheme.spacingM),
         child: Column(
           children: [
+            // First Name & Last Name Row
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _shippingFirstNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'First Name *',
-                      hintText: 'John',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'First name is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'First Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _shippingFirstNameController,
+                        decoration: InputDecoration(
+                          hintText: 'John',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'First name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingM),
                 Expanded(
-                  child: TextFormField(
-                    controller: _shippingLastNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Last Name *',
-                      hintText: 'Doe',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Last name is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Last Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _shippingLastNameController,
+                        decoration: InputDecoration(
+                          hintText: 'Doe',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Last name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Company
+            const Text(
+              'Company',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _shippingCompanyController,
-              decoration: const InputDecoration(
-                labelText: 'Company (Optional)',
+              decoration: InputDecoration(
                 hintText: 'Company Name',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Address Line 1
+            const Text(
+              'Address Line 1',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _shippingAddress1Controller,
-              decoration: const InputDecoration(
-                labelText: 'Address Line 1 *',
+              decoration: InputDecoration(
                 hintText: 'Street address',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               maxLines: 2,
               validator: (value) {
@@ -1046,46 +1407,127 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Address Line 2
+            const Text(
+              'Address Line 2',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _shippingAddress2Controller,
-              decoration: const InputDecoration(
-                labelText: 'Address Line 2 (Optional)',
+              decoration: InputDecoration(
                 hintText: 'Apartment, suite, etc.',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               maxLines: 2,
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // City & State Row
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _shippingCityController,
-                    decoration: const InputDecoration(
-                      labelText: 'City *',
-                      hintText: 'Mumbai',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'City is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'City',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _shippingCityController,
+                        decoration: InputDecoration(
+                          hintText: 'Mumbai',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'City is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingM),
                 Expanded(
-                  child: TextFormField(
-                    controller: _shippingStateController,
-                    decoration: const InputDecoration(
-                      labelText: 'State *',
-                      hintText: 'Maharashtra',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'State is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'State',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _shippingStateController,
+                        decoration: InputDecoration(
+                          hintText: 'Maharashtra',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'State is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],

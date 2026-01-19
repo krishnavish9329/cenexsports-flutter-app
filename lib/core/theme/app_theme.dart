@@ -8,6 +8,7 @@ class AppTheme {
   static const Color successColor = Color(0xFF4CAF50);
   static const Color errorColor = Color(0xFFE53935);
   static const Color warningColor = Color(0xFFFF9800);
+  static const Color brownButtonColor = Color(0xFF8B4513); // Brown color for form buttons
   
   // Spacing
   static const double spacingXS = 4.0;
@@ -68,19 +69,25 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Colors.grey[200], // Light gray background for form fields
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusS),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide.none, // No border for cleaner look
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusS),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusS),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide.none,
         ),
+        labelStyle: const TextStyle(
+          color: Colors.black87,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }

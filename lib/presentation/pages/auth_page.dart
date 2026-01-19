@@ -100,10 +100,34 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
     final authState = ref.watch(authProvider);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Sign In / Create Account'),
+        backgroundColor: Colors.grey[100],
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Sign In / Create Account',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         bottom: TabBar(
           controller: _tabController,
+          indicatorColor: Colors.blue,
+          labelColor: Colors.blue,
+          unselectedLabelColor: Colors.grey[600],
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 16,
+          ),
+          indicator: const UnderlineTabIndicator(
+            borderSide: BorderSide(color: Colors.blue, width: 2),
+          ),
           tabs: const [
             Tab(text: 'Sign In'),
             Tab(text: 'Sign Up'),
@@ -143,12 +167,35 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTheme.spacingXL),
+            // Label above field
+            const Text(
+              'Email or Phone Number',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _loginEmailOrPhoneController,
-              decoration: const InputDecoration(
-                labelText: 'Email or Phone Number *',
+              decoration: InputDecoration(
                 hintText: 'john@example.com or +91 9876543210',
-                prefixIcon: Icon(Icons.email),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -188,9 +235,13 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
                     ? null
                     : () => _handleLogin(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: AppTheme.brownButtonColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  ),
+                  elevation: 0,
                 ),
                 child: authState.isLoading
                     ? const SizedBox(
@@ -233,12 +284,35 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTheme.spacingXL),
+            // First Name
+            const Text(
+              'First Name',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _signupFirstNameController,
-              decoration: const InputDecoration(
-                labelText: 'First Name *',
+              decoration: InputDecoration(
                 hintText: 'First Name',
-                prefixIcon: Icon(Icons.person),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -248,22 +322,68 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Last Name
+            const Text(
+              'Last Name',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _signupLastNameController,
-              decoration: const InputDecoration(
-                labelText: 'Last Name',
+              decoration: InputDecoration(
                 hintText: 'Last Name',
-                prefixIcon: Icon(Icons.person),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               // Last name is optional - no validator
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Email
+            const Text(
+              'Email',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _signupEmailController,
-              decoration: const InputDecoration(
-                labelText: 'Email *',
+              decoration: InputDecoration(
                 hintText: 'user@gmail.com',
-                prefixIcon: Icon(Icons.email),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -277,14 +397,37 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Username
+            Text(
+              'Username',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _signupUsernameController,
               decoration: InputDecoration(
-                labelText: 'Username *',
                 hintText: _signupFirstNameController.text.isNotEmpty 
                     ? _signupFirstNameController.text.toLowerCase()
                     : 'User',
-                prefixIcon: const Icon(Icons.account_circle),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -294,15 +437,39 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Password
+            const Text(
+              'Password',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _signupPasswordController,
               decoration: InputDecoration(
-                labelText: 'Password *',
                 hintText: 'Strong@123',
-                prefixIcon: const Icon(Icons.lock),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey[600],
                   ),
                   onPressed: () {
                     setState(() {
@@ -321,15 +488,39 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Confirm Password
+            const Text(
+              'Confirm Password',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _signupConfirmPasswordController,
               decoration: InputDecoration(
-                labelText: 'Confirm Password *',
                 hintText: 'Strong@123',
-                prefixIcon: const Icon(Icons.lock),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey[600],
                   ),
                   onPressed: () {
                     setState(() {
@@ -356,12 +547,35 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               style: AppTextStyles.h4,
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Address Line 1
+            const Text(
+              'Address Line 1',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingS),
             TextFormField(
               controller: _address1Controller,
-              decoration: const InputDecoration(
-                labelText: 'Address Line 1 *',
+              decoration: InputDecoration(
                 hintText: '123 Main Street',
-                prefixIcon: Icon(Icons.home),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -371,79 +585,189 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
               },
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // City and State Row
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _cityController,
-                    decoration: const InputDecoration(
-                      labelText: 'City *',
-                      hintText: 'Ahmedabad',
-                      prefixIcon: Icon(Icons.location_city),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'City is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'City',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _cityController,
+                        decoration: InputDecoration(
+                          hintText: 'Ahmedabad',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'City is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingM),
                 Expanded(
-                  child: TextFormField(
-                    controller: _stateController,
-                    decoration: const InputDecoration(
-                      labelText: 'State *',
-                      hintText: 'GJ',
-                      prefixIcon: Icon(Icons.map),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'State is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'State',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _stateController,
+                        decoration: InputDecoration(
+                          hintText: 'GJ',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'State is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppTheme.spacingM),
+            // Postcode and Phone Row
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _postcodeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Postcode *',
-                      hintText: '380001',
-                      prefixIcon: Icon(Icons.pin_drop),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Postcode is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Postcode',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _postcodeController,
+                        decoration: InputDecoration(
+                          hintText: '380001',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Postcode is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingM),
                 Expanded(
-                  child: TextFormField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone *',
-                      hintText: '9876543210',
-                      prefixIcon: Icon(Icons.phone),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Phone is required';
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Phone',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingS),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(
+                          hintText: '9876543210',
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Phone is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -468,12 +792,35 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
             ),
             if (!_useSameAddressForShipping) ...[
               const SizedBox(height: AppTheme.spacingM),
+              // Shipping Address Line 1
+              const Text(
+                'Shipping Address Line 1',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingS),
               TextFormField(
                 controller: _shippingAddress1Controller,
-                decoration: const InputDecoration(
-                  labelText: 'Shipping Address Line 1 *',
+                decoration: InputDecoration(
                   hintText: '123 Main Street',
-                  prefixIcon: Icon(Icons.home),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 validator: (value) {
                   if (!_useSameAddressForShipping) {
@@ -485,54 +832,132 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
                 },
               ),
               const SizedBox(height: AppTheme.spacingM),
+              // Shipping City and State Row
               Row(
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: _shippingCityController,
-                      decoration: const InputDecoration(
-                        labelText: 'Shipping City *',
-                        hintText: 'Ahmedabad',
-                        prefixIcon: Icon(Icons.location_city),
-                      ),
-                      validator: (value) {
-                        if (!_useSameAddressForShipping) {
-                          if (value == null || value.isEmpty) {
-                            return 'Shipping city is required';
-                          }
-                        }
-                        return null;
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Shipping City',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spacingS),
+                        TextFormField(
+                          controller: _shippingCityController,
+                          decoration: InputDecoration(
+                            hintText: 'Ahmedabad',
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                          validator: (value) {
+                            if (!_useSameAddressForShipping) {
+                              if (value == null || value.isEmpty) {
+                                return 'Shipping city is required';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: AppTheme.spacingM),
                   Expanded(
-                    child: TextFormField(
-                      controller: _shippingStateController,
-                      decoration: const InputDecoration(
-                        labelText: 'Shipping State *',
-                        hintText: 'GJ',
-                        prefixIcon: Icon(Icons.map),
-                      ),
-                      validator: (value) {
-                        if (!_useSameAddressForShipping) {
-                          if (value == null || value.isEmpty) {
-                            return 'Shipping state is required';
-                          }
-                        }
-                        return null;
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Shipping State',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spacingS),
+                        TextFormField(
+                          controller: _shippingStateController,
+                          decoration: InputDecoration(
+                            hintText: 'GJ',
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                          validator: (value) {
+                            if (!_useSameAddressForShipping) {
+                              if (value == null || value.isEmpty) {
+                                return 'Shipping state is required';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: AppTheme.spacingM),
+              // Shipping Postcode
+              const Text(
+                'Shipping Postcode',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingS),
               TextFormField(
                 controller: _shippingPostcodeController,
-                decoration: const InputDecoration(
-                  labelText: 'Shipping Postcode *',
+                decoration: InputDecoration(
                   hintText: '380001',
-                  prefixIcon: Icon(Icons.pin_drop),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -575,9 +1000,13 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
                     ? null
                     : () => _handleSignup(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: AppTheme.brownButtonColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                  ),
+                  elevation: 0,
                 ),
                 child: authState.isLoading
                     ? const SizedBox(

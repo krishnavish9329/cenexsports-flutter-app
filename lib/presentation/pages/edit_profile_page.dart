@@ -63,12 +63,35 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               ),
               const SizedBox(height: AppTheme.spacingXL),
               
+              // First Name
+              const Text(
+                'First Name',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingS),
               TextFormField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(
-                  labelText: 'First Name *',
+                decoration: InputDecoration(
                   hintText: 'First Name',
-                  prefixIcon: Icon(Icons.person),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -79,36 +102,111 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               ),
               const SizedBox(height: AppTheme.spacingM),
               
+              // Last Name
+              const Text(
+                'Last Name',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingS),
               TextFormField(
                 controller: _lastNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Last Name',
+                decoration: InputDecoration(
                   hintText: 'Last Name',
-                  prefixIcon: Icon(Icons.person),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 // Last name is optional
               ),
               const SizedBox(height: AppTheme.spacingM),
               
+              // Email (Read-only)
+              const Text(
+                'Email',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingS),
               TextFormField(
                 controller: TextEditingController(text: widget.customer.email ?? ''),
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
                   hintText: 'john@example.com',
-                  prefixIcon: Icon(Icons.email),
+                  filled: true,
+                  fillColor: Colors.grey[300],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 enabled: false, // Email cannot be changed (read-only)
+                style: TextStyle(
+                  color: Colors.grey[600],
+                ),
               ),
               const SizedBox(height: AppTheme.spacingM),
               
+              // Username (Read-only)
+              const Text(
+                'Username',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingS),
               TextFormField(
                 controller: TextEditingController(text: widget.customer.username ?? ''),
-                decoration: const InputDecoration(
-                  labelText: 'Username',
+                decoration: InputDecoration(
                   hintText: 'Username123',
-                  prefixIcon: Icon(Icons.account_circle),
+                  filled: true,
+                  fillColor: Colors.grey[300],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 enabled: false, // Username cannot be changed (read-only)
+                style: TextStyle(
+                  color: Colors.grey[600],
+                ),
               ),
               
               const SizedBox(height: AppTheme.spacingXL),
@@ -143,9 +241,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       ? null
                       : () => _handleUpdate(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
+                    backgroundColor: AppTheme.brownButtonColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                    ),
+                    elevation: 0,
                   ),
                   child: authState.isLoading
                       ? const SizedBox(
