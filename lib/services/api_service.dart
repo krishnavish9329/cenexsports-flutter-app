@@ -53,8 +53,16 @@ class ApiService {
   // Search products
   static Future<List<Product>> searchProducts(String query) async {
     try {
+      final uri = Uri.parse('$baseUrl/products').replace(
+        queryParameters: {
+          'search': query,
+          'status': 'publish', // Ensure we only get published products
+          'stock_status': 'instock', // explicit filter for available products if desired, or remove to show all
+        },
+      );
+      
       final response = await http.get(
-        Uri.parse('$baseUrl/products?search=$query'),
+        uri,
         headers: headers,
       );
 
@@ -72,8 +80,12 @@ class ApiService {
   // Get products by category ID
   static Future<List<Product>> getProductsByCategory(int categoryId) async {
     try {
+      final uri = Uri.parse('$baseUrl/products').replace(
+        queryParameters: {'category': categoryId.toString()},
+      );
+
       final response = await http.get(
-        Uri.parse('$baseUrl/products?category=$categoryId'),
+        uri,
         headers: headers,
       );
 

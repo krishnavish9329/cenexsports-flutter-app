@@ -9,6 +9,7 @@ import 'core/providers/cart_provider.dart';
 import 'core/providers/language_provider.dart';
 import 'core/config/api_config.dart';
 import 'pages/main_navigation.dart';
+import 'pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +46,7 @@ class MyApp extends ConsumerWidget {
     return provider.ChangeNotifierProvider(
       create: (_) => CartProvider(),
       child: MaterialApp(
-        title: 'Cenex Sports',
+        title: 'CENEX',
       debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
@@ -60,7 +61,7 @@ class MyApp extends ConsumerWidget {
           Locale('en', ''), // English
           Locale('hi', ''), // Hindi
         ],
-        home: const MainNavigation(),
+        home: const SplashPage(),
       ),
     );
   }

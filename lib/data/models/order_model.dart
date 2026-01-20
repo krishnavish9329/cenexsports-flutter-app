@@ -1,6 +1,7 @@
 import 'billing_model.dart';
 import 'shipping_model.dart';
 import 'line_item_model.dart';
+import 'coupon_line_model.dart';
 
 /// Order model for WooCommerce order creation and response
 class OrderModel {
@@ -16,6 +17,7 @@ class OrderModel {
   final BillingModel billing;
   final ShippingModel shipping;
   final List<LineItemModel> lineItems;
+  final List<CouponLineModel> couponLines;
   final String? orderKey; // From response
   final int? customerId; // Optional
   final String? customerNote; // Optional
@@ -33,6 +35,7 @@ class OrderModel {
     required this.billing,
     required this.shipping,
     required this.lineItems,
+    this.couponLines = const [],
     this.orderKey,
     this.customerId,
     this.customerNote,
@@ -49,6 +52,7 @@ class OrderModel {
       'billing': billing.toJson(),
       'shipping': shipping.toJson(),
       'line_items': lineItems.map((item) => item.toJson()).toList(),
+      'coupon_lines': couponLines.map((item) => item.toJson()).toList(),
       if (customerNote != null && customerNote!.isNotEmpty) 'customer_note': customerNote,
     };
   }
@@ -69,6 +73,10 @@ class OrderModel {
       shipping: ShippingModel.fromJson(json['shipping'] ?? {}),
       lineItems: (json['line_items'] as List<dynamic>?)
               ?.map((item) => LineItemModel.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      couponLines: (json['coupon_lines'] as List<dynamic>?)
+              ?.map((item) => CouponLineModel.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
       orderKey: json['order_key'],

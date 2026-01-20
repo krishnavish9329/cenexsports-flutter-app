@@ -325,25 +325,51 @@ class _CartPageState extends State<CartPage> {
                 Icon(Icons.local_offer_outlined, size: 18, color: Colors.grey[700]),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: TextField(
-                    controller: _promoController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter promo code',
-                      isDense: true,
-                      border: InputBorder.none,
-                    ),
-                  ),
+                  child: cartProvider.appliedCouponCode != null
+                      ? Text(
+                          cartProvider.appliedCouponCode!,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.successColor,
+                          ),
+                        )
+                      : TextField(
+                          controller: _promoController,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter promo code',
+                            isDense: true,
+                            border: InputBorder.none,
+                          ),
+                        ),
                 ),
                 TextButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Promo code applied!'),
-                        backgroundColor: AppTheme.successColor,
-                      ),
-                    );
+                    if (cartProvider.appliedCouponCode != null) {
+                      cartProvider.removeCoupon();
+                      _promoController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Coupon removed')),
+                      );
+                    } else {
+                      if (_promoController.text.isNotEmpty) {
+                        cartProvider.applyCoupon(_promoController.text.trim());
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Coupon applied!'),
+                            backgroundColor: AppTheme.successColor,
+                          ),
+                        );
+                      }
+                    }
                   },
-                  child: const Text('Apply'),
+                  child: Text(
+                    cartProvider.appliedCouponCode != null ? 'Remove' : 'Apply',
+                    style: TextStyle(
+                      color: cartProvider.appliedCouponCode != null
+                          ? AppTheme.errorColor
+                          : AppTheme.primaryColor,
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
@@ -19,10 +20,12 @@ class _SearchPageState extends State<SearchPage> {
   final SearchStorageService _storageService = SearchStorageService();
   
   List<Product> _searchResults = [];
+  List<Product> _suggestions = [];
   List<String> _searchHistory = [];
   bool _isLoading = false;
   bool _hasSearched = false;
   String? _errorMessage;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -34,6 +37,33 @@ class _SearchPageState extends State<SearchPage> {
     final history = await _storageService.getHistory();
     setState(() {
       _searchHistory = history;
+    });
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    // Clear suggestions if query is empty
+    if (query.trim().isEmpty) {
+      setState(() {
+        _suggestions = [];
+      });
+      return;
+    }
+
+    // Debounce for 500ms
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final products = await ApiService.searchProducts(query);
+        if (mounted) {
+          setState(() {
+            _suggestions = products;
+          });
+        }
+      } catch (e) {
+        // Silently fail for suggestions or log error
+        debugPrint('Error fetching suggestions: $e');
+      }
     });
   }
 
@@ -88,6 +118,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -109,23 +140,36 @@ class _SearchPageState extends State<SearchPage> {
           autofocus: true,
           textInputAction: TextInputAction.search,
           onSubmitted: _performSearch,
+          onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Search for products, brands and more',
             border: InputBorder.none,
             hintStyle: TextStyle(color: Colors.grey[400]),
-            suffixIcon: _searchController.text.isNotEmpty 
-              ? IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.grey),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_searchController.text.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _hasSearched = false;
+                        _searchResults = [];
+                        _suggestions = [];
+                        _errorMessage = null;
+                      });
+                    },
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.search, color: AppTheme.primaryColor),
                   onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _hasSearched = false;
-                      _searchResults = [];
-                      _errorMessage = null;
-                    });
+                    _performSearch(_searchController.text);
+                    FocusScope.of(context).unfocus(); // Dismiss keyboard
                   },
-                )
-              : null,
+                ),
+              ],
+            ),
           ),
           style: const TextStyle(color: Colors.black, fontSize: 16),
         ),
@@ -153,6 +197,10 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     if (!_hasSearched) {
+      // Show suggestions if available and user hasn't hit search yet
+      if (_suggestions.isNotEmpty && _searchController.text.isNotEmpty) {
+        return _buildSuggestionsList();
+      }
       return _buildHistoryView();
     }
 
@@ -299,6 +347,29 @@ class _SearchPageState extends State<SearchPage> {
               product: _searchResults[index],
               onTap: () => _navigateToProductDetail(_searchResults[index]),
             );
+          },
+        );
+      },
+    );
+  }
+  Widget _buildSuggestionsList() {
+    return ListView.separated(
+      itemCount: _suggestions.length,
+      separatorBuilder: (context, index) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final product = _suggestions[index];
+        return ListTile(
+          leading: const Icon(Icons.search, color: Colors.grey),
+          title: Text(product.name),
+          trailing: const Icon(Icons.north_west, size: 16, color: Colors.grey),
+          onTap: () {
+            _searchController.text = product.name;
+            _performSearch(product.name);
+            FocusScope.of(context).unfocus();
+            // Clear suggestions so we show the results grid
+            setState(() {
+              _suggestions = [];
+            });
           },
         );
       },

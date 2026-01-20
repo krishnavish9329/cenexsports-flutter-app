@@ -17,8 +17,10 @@ class CartItem {
 /// Cart state management provider
 class CartProvider with ChangeNotifier {
   final List<CartItem> _items = [];
+  String? _appliedCouponCode;
   
   List<CartItem> get items => List.unmodifiable(_items);
+  String? get appliedCouponCode => _appliedCouponCode;
   
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   
@@ -30,7 +32,14 @@ class CartProvider with ChangeNotifier {
   
   double get tax => totalAmount * 0.18; // 18% GST
   
-  double get discount => 0.0; // Can be calculated based on promo codes
+  
+  double get discount {
+    // Basic local estimation for "WELCOME10"
+    if (_appliedCouponCode == 'WELCOME10') {
+      return subtotal * 0.10; // 10% discount
+    }
+    return 0.0;
+  }
   
   double get grandTotal => subtotal + tax - discount;
   
@@ -69,9 +78,22 @@ class CartProvider with ChangeNotifier {
     }
   }
   
+  /// Apply coupon
+  void applyCoupon(String code) {
+    _appliedCouponCode = code;
+    notifyListeners();
+  }
+
+  /// Remove coupon
+  void removeCoupon() {
+    _appliedCouponCode = null;
+    notifyListeners();
+  }
+  
   /// Clear cart
   void clearCart() {
     _items.clear();
+    _appliedCouponCode = null;
     notifyListeners();
   }
   

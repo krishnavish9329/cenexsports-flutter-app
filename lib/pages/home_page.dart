@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider_package;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,12 +36,31 @@ class _HomePageState extends ConsumerState<HomePage> {
   bool _isLoading = true;
   String? _errorMessage;
   bool _isScrolled = false;
+  
+  // Timer state
+  Timer? _flashSaleTimer;
+  Duration _remainingTime = const Duration(hours: 1, minutes: 18, seconds: 23);
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _startFlashSaleTimer();
     _loadProducts();
+  }
+  
+  void _startFlashSaleTimer() {
+    _flashSaleTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (_remainingTime.inSeconds > 0) {
+            _remainingTime = _remainingTime - const Duration(seconds: 1);
+          } else {
+            _flashSaleTimer?.cancel();
+          }
+        });
+      }
+    });
   }
 
   Future<void> _loadProducts() async {
@@ -76,6 +96,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
+    _flashSaleTimer?.cancel();
     super.dispose();
   }
 
@@ -603,9 +624,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(height: AppTheme.spacingS),
                 // Shop Now Button
-              Container(
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryPage(
+                        categoryName: 'All Products',
+                        products: _products,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(AppTheme.radiusS),
                     border: Border.all(color: Colors.grey[300]!),
@@ -626,6 +659,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ],
                   ),
                 ),
+              ),
                 const SizedBox(height: AppTheme.spacingM),
                 // Countdown Timer
                 Row(
@@ -638,11 +672,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _buildTimerBox('00'),
+                    _buildTimerBox(_formatDuration(_remainingTime.inHours)),
                     const Text(' : ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    _buildTimerBox('18'),
+                    _buildTimerBox(_formatDuration(_remainingTime.inMinutes.remainder(60))),
                     const Text(' : ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    _buildTimerBox('20'),
+                    _buildTimerBox(_formatDuration(_remainingTime.inSeconds.remainder(60))),
                   ],
                 ),
               ],
@@ -851,5 +885,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  String _formatDuration(int value) {
+    return value.toString().padLeft(2, '0');
   }
 }

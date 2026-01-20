@@ -8,6 +8,7 @@ import '../../data/models/billing_model.dart';
 import '../../data/models/shipping_model.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/line_item_model.dart';
+import '../../data/models/coupon_line_model.dart';
 import '../../data/models/customer_model.dart';
 import '../../data/services/customer_api_service.dart';
 import '../providers/order_provider.dart';
@@ -1724,6 +1725,12 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       );
     }).toList();
 
+    // Create coupon lines
+    final couponLines = <CouponLineModel>[];
+    if (cartProvider.appliedCouponCode != null) {
+      couponLines.add(CouponLineModel(code: cartProvider.appliedCouponCode!));
+    }
+
     // Create order model
     final order = OrderModel(
       customerId: _customerId,
@@ -1734,6 +1741,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       billing: billing,
       shipping: shipping,
       lineItems: lineItems,
+      couponLines: couponLines,
     );
 
     // Place order
