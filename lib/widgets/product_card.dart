@@ -127,35 +127,6 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Wishlist Heart Icon (Top Right)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO: Implement wishlist functionality
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.favorite_border,
-                        size: 20,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

@@ -228,11 +228,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       ),
                       const SizedBox(height: AppTheme.spacingL),
                       
-                      // Size Selector (if applicable)
-                      _buildSizeSelector(),
+                      // Size Selector (only if product has sizes)
+                      if (product.sizes != null && product.sizes!.isNotEmpty)
+                        _buildSizeSelector(product.sizes!),
                       
-                      // Color Selector (if applicable)
-                      _buildColorSelector(),
+                      // Color Selector (only if product has colors)
+                      if (product.colors != null && product.colors!.isNotEmpty)
+                        _buildColorSelector(product.colors!),
                       
                       const SizedBox(height: AppTheme.spacingL),
                       
@@ -391,8 +393,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     );
   }
 
-  Widget _buildSizeSelector() {
-    final sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  Widget _buildSizeSelector(List<String> sizes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,13 +428,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     );
   }
 
-  Widget _buildColorSelector() {
-    final colors = [
-      {'name': 'Black', 'color': Colors.black},
-      {'name': 'White', 'color': Colors.white},
-      {'name': 'Red', 'color': Colors.red},
-      {'name': 'Blue', 'color': Colors.blue},
-    ];
+  Widget _buildColorSelector(List<Map<String, dynamic>> colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -447,6 +442,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           spacing: AppTheme.spacingS,
           children: colors.map((colorData) {
             final colorName = colorData['name'] as String;
+            final color = colorData['color'] as Color;
             final isSelected = _selectedColor == colorName;
             return GestureDetector(
               onTap: () {
@@ -458,7 +454,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: colorData['color'] as Color,
+                  color: color,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isSelected

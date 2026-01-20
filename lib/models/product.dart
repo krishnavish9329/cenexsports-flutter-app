@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Product {
   final String id;
   final String name;
@@ -11,6 +13,8 @@ class Product {
   final String category;
   final bool isNew;
   final bool isBestSeller;
+  final List<String>? sizes;
+  final List<Map<String, dynamic>>? colors;
 
   Product({
     required this.id,
@@ -25,6 +29,8 @@ class Product {
     required this.category,
     this.isNew = false,
     this.isBestSeller = false,
+    this.sizes,
+    this.colors,
   });
 
   // Factory constructor to create Product from JSON
@@ -70,6 +76,123 @@ class Product {
     final bool isNew = json['on_sale'] ?? false;
     final bool isBestSeller = json['featured'] ?? false;
 
+    // Parse sizes from attributes (WooCommerce format)
+    List<String>? sizes;
+    if (json['attributes'] != null && json['attributes'] is List) {
+      final attributes = json['attributes'] as List;
+      try {
+        // Try to find size attribute by name or id
+        Map<String, dynamic>? sizeAttr;
+        for (var attr in attributes) {
+          if (attr is Map) {
+            final attrMap = Map<String, dynamic>.from(attr);
+            final attrName = attrMap['name']?.toString().toLowerCase() ?? '';
+            final attrId = attrMap['id']?.toString() ?? '';
+            if (attrName == 'size' || attrId == '1' || attrName.contains('size')) {
+              sizeAttr = attrMap;
+              break;
+            }
+          }
+        }
+        
+        if (sizeAttr != null && sizeAttr['options'] != null) {
+          if (sizeAttr['options'] is List) {
+            final optionsList = sizeAttr['options'] as List;
+            sizes = optionsList.map((opt) => opt.toString().trim()).where((s) => s.isNotEmpty).toList();
+          } else if (sizeAttr['options'] is String) {
+            // Sometimes options might be comma-separated string
+            final optionsStr = sizeAttr['options'] as String;
+            sizes = optionsStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+          }
+        }
+      } catch (e) {
+        // If no size attribute found, sizes remains null
+        sizes = null;
+      }
+    }
+
+    // Parse colors from attributes (WooCommerce format)
+    List<Map<String, dynamic>>? colors;
+    if (json['attributes'] != null && json['attributes'] is List) {
+      final attributes = json['attributes'] as List;
+      try {
+        // Try to find color attribute by name or id
+        Map<String, dynamic>? colorAttr;
+        for (var attr in attributes) {
+          if (attr is Map) {
+            final attrMap = Map<String, dynamic>.from(attr);
+            final attrName = attrMap['name']?.toString().toLowerCase() ?? '';
+            final attrId = attrMap['id']?.toString() ?? '';
+            if (attrName == 'color' || attrName == 'colour' || attrId == '2' || attrName.contains('color')) {
+              colorAttr = attrMap;
+              break;
+            }
+          }
+        }
+        
+        if (colorAttr != null && colorAttr['options'] != null) {
+          List<dynamic> colorOptions = [];
+          if (colorAttr['options'] is List) {
+            colorOptions = colorAttr['options'] as List;
+          } else if (colorAttr['options'] is String) {
+            // Sometimes options might be comma-separated string
+            final optionsStr = colorAttr['options'] as String;
+            colorOptions = optionsStr.split(',').map((s) => s.trim()).toList();
+          }
+          
+          colors = colorOptions.map((colorName) {
+            final name = colorName.toString().trim();
+            if (name.isEmpty) return null;
+            
+            // Map color names to Flutter Colors
+            Color color;
+            switch (name.toLowerCase()) {
+              case 'black':
+                color = Colors.black;
+                break;
+              case 'white':
+                color = Colors.white;
+                break;
+              case 'red':
+                color = Colors.red;
+                break;
+              case 'blue':
+                color = Colors.blue;
+                break;
+              case 'green':
+                color = Colors.green;
+                break;
+              case 'yellow':
+                color = Colors.yellow;
+                break;
+              case 'orange':
+                color = Colors.orange;
+                break;
+              case 'purple':
+                color = Colors.purple;
+                break;
+              case 'pink':
+                color = Colors.pink;
+                break;
+              case 'brown':
+                color = Colors.brown;
+                break;
+              case 'grey':
+              case 'gray':
+                color = Colors.grey;
+                break;
+              default:
+                color = Colors.grey;
+            }
+            return {'name': name, 'color': color};
+          }).where((item) => item != null).cast<Map<String, dynamic>>().toList();
+        }
+      } catch (e) {
+        // If no color attribute found, colors remains null
+        colors = null;
+      }
+    }
+
     return Product(
       id: json['id'].toString(),
       name: json['name'] ?? 'Product',
@@ -83,6 +206,8 @@ class Product {
       category: category,
       isNew: isNew,
       isBestSeller: isBestSeller,
+      sizes: sizes,
+      colors: colors,
     );
   }
 
