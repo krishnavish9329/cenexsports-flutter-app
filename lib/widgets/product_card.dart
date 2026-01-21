@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../core/theme/app_theme.dart';
+import '../core/providers/cart_provider.dart';
 import 'price_widget.dart';
 
 /// Modern, clean product card widget matching the design reference
@@ -29,6 +31,9 @@ class ProductCard extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 160;
+          final buttonFontSize = isCompact ? 10.0 : 12.0;
+          final buttonIconSize = isCompact ? 14.0 : 16.0;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -158,6 +163,53 @@ class ProductCard extends StatelessWidget {
                     priceStyle: AppTextStyles.bodyMedium.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    height: isCompact ? 28 : 32,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Provider.of<CartProvider>(context, listen: false).addToCart(product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${product.name} added to cart'),
+                            backgroundColor: AppTheme.successColor,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 6 : 8,
+                        ),
+                        side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                        ),
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      icon: Icon(
+                        Icons.add_shopping_cart,
+                        size: buttonIconSize,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      label: Flexible(
+                        child: Text(
+                          'Add to Cart',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: buttonFontSize,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],

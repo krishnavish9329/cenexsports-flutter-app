@@ -32,17 +32,19 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFCEAE2), // Exact match provided by user
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Image.asset(
-            'assets/images/splash_logo.png',
-            fit: BoxFit.contain,
-            // Ensure responsive scaling but don't exceed screen bounds
-            width: MediaQuery.of(context).size.width * 0.8,
+      backgroundColor: Colors.white,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/images/splash_logo.jpg',
+            fit: BoxFit.cover,
           ),
-        ),
+          // Optional: Add a subtle overlay if needed
+          Container(
+            color: Colors.black.withOpacity(0.05),
+          ),
+        ],
       ),
     );
   }

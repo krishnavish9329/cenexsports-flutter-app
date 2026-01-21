@@ -473,15 +473,27 @@ class _HomePageState extends ConsumerState<HomePage> {
           // Location and Icons Row
           Row(
             children: [
-              // App Name
-              const Text(
-                'cenexsports',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                  fontStyle: FontStyle.italic,
-                ),
+              // App Logo + Name
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/app_icon.png',
+                    width: 20,
+                    height: 20,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'cenexsports',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
               ),
               const Spacer(),
               // Shopping Bag
@@ -577,153 +589,191 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildPromotionalBanner(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    
-    return Container(
-      margin: const EdgeInsets.all(AppTheme.spacingM),
-      height: 180,
-      decoration: BoxDecoration(
-        color: isDark ? colorScheme.surfaceContainerHighest : const Color(0xFFF5E6E6), // Light dusty pink
-        borderRadius: BorderRadius.circular(AppTheme.radiusL),
-      ),
-      child: Stack(
-        children: [
-          // Left Content
-          Positioned(
-            left: AppTheme.spacingM,
-            top: 0,
-            bottom: 0,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final padding = ResponsiveHelper.getPadding(context);
+        final fontScale = ResponsiveHelper.getFontScale(context);
+        final isCompact = width < 360;
+        final effectiveFontScale = fontScale * (isCompact ? 0.9 : 1.0);
+        final bannerHeight = (width * (isCompact ? 0.52 : 0.42))
+            .clamp(isCompact ? 180.0 : 150.0, 240.0)
+            .toDouble();
+        final imageWidth = (width * (isCompact ? 0.28 : 0.32))
+            .clamp(isCompact ? 80.0 : 96.0, 160.0)
+            .toDouble();
+        final iconSize = (imageWidth * 0.6).clamp(48.0, 88.0).toDouble();
+        final horizontalPadding = isCompact ? 12.0 : padding;
+        final timerPadding = EdgeInsets.symmetric(
+          horizontal: isCompact ? 6 : 8,
+          vertical: isCompact ? 3 : 4,
+        );
+
+        return Container(
+          margin: EdgeInsets.all(horizontalPadding),
+          height: bannerHeight,
+          decoration: BoxDecoration(
+            color: isDark ? colorScheme.surfaceContainerHighest : const Color(0xFFF5E6E6), // Light dusty pink
+            borderRadius: BorderRadius.circular(AppTheme.radiusL),
+          ),
+          child: Row(
             children: [
-                // New Collection Button
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF5D4037),
-                    borderRadius: BorderRadius.circular(20),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: horizontalPadding,
+                    right: horizontalPadding * 0.5,
                   ),
-                  child: const Text(
-                    'New Collection',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacingS),
-                // Discount Text
-                const Text(
-                  'Enjoy 30% Discount',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF5D4037),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacingS),
-                // Shop Now Button
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CategoryPage(
-                        categoryName: 'All Products',
-                        products: _products,
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Shop Now',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                      // New Collection Button
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF5D4037),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'New Collection',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12 * effectiveFontScale,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(Icons.arrow_forward, size: 16, color: Colors.black87),
+                      SizedBox(height: isCompact ? 6 : AppTheme.spacingS),
+                      // Discount Text
+                      Text(
+                        'Enjoy 20% Discount',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 20 * effectiveFontScale,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF5D4037),
+                        ),
+                      ),
+                      SizedBox(height: isCompact ? 6 : AppTheme.spacingS),
+                      // Shop Now Button
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CategoryPage(
+                                categoryName: 'All Products',
+                                products: _products,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Shop Now',
+                                style: TextStyle(
+                                  fontSize: 14 * effectiveFontScale,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.arrow_forward, size: 16 * effectiveFontScale, color: Colors.black87),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: isCompact ? 10 : AppTheme.spacingM),
+                      // Countdown Timer
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            'Flash sale ends',
+                            style: TextStyle(
+                              fontSize: 12 * effectiveFontScale,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          _buildTimerBox(
+                            _formatDuration(_remainingTime.inHours),
+                            fontSize: 14 * effectiveFontScale,
+                            padding: timerPadding,
+                          ),
+                          Text(' : ', style: TextStyle(fontSize: 14 * effectiveFontScale, fontWeight: FontWeight.bold)),
+                          _buildTimerBox(
+                            _formatDuration(_remainingTime.inMinutes.remainder(60)),
+                            fontSize: 14 * effectiveFontScale,
+                            padding: timerPadding,
+                          ),
+                          Text(' : ', style: TextStyle(fontSize: 14 * effectiveFontScale, fontWeight: FontWeight.bold)),
+                          _buildTimerBox(
+                            _formatDuration(_remainingTime.inSeconds.remainder(60)),
+                            fontSize: 14 * effectiveFontScale,
+                            padding: timerPadding,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ),
-                const SizedBox(height: AppTheme.spacingM),
-                // Countdown Timer
-                Row(
-                  children: [
-                    const Text(
-                      'Flash sale ends',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildTimerBox(_formatDuration(_remainingTime.inHours)),
-                    const Text(' : ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    _buildTimerBox(_formatDuration(_remainingTime.inMinutes.remainder(60))),
-                    const Text(' : ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    _buildTimerBox(_formatDuration(_remainingTime.inSeconds.remainder(60))),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Right Image Placeholder
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 120,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(AppTheme.radiusL),
-                  bottomRight: Radius.circular(AppTheme.radiusL),
+              SizedBox(
+                width: imageWidth,
+                height: bannerHeight,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(AppTheme.radiusL),
+                    bottomRight: Radius.circular(AppTheme.radiusL),
+                  ),
+                  child: Image.asset(
+                    'assets/images/promo_model.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: Icon(Icons.person, size: iconSize, color: Colors.grey),
+                      );
+                    },
+                  ),
                 ),
               ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(AppTheme.radiusL),
-                  bottomRight: Radius.circular(AppTheme.radiusL),
-                ),
-                child: Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.person, size: 80, color: Colors.grey),
-                ),
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTimerBox(String value) {
+  Widget _buildTimerBox(
+    String value, {
+    double fontSize = 14,
+    EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: padding,
       decoration: BoxDecoration(
         color: const Color(0xFF5D4037),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         value,
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.white,
-          fontSize: 14,
+          fontSize: fontSize,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -776,7 +826,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
             SizedBox(
-              height: 100,
+              height: 80,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM),
@@ -796,7 +846,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildCircularCategoryItem(CategoryModel category) {
-      return GestureDetector(
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -809,14 +859,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
       },
       child: Container(
-        width: 70,
+        width: 56,
         margin: const EdgeInsets.only(right: AppTheme.spacingM),
           child: Column(
             children: [
             // Circular Icon/Image
             Container(
-              width: 70,
-              height: 70,
+              width: 56,
+              height: 56,
                 decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,

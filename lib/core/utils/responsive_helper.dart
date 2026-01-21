@@ -31,9 +31,9 @@ class ResponsiveHelper {
   /// Adjusted to prevent overflow - cards need more vertical space
   static double getProductCardAspectRatio(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (width > 1200) return 0.65; // Desktop - no button, can be wider
-    if (width > 600) return 0.68; // Tablet - no button, can be wider
-    return 0.65; // Mobile - no button, can be wider
+    if (width > 1200) return 0.62; // Desktop - taller cards for buttons
+    if (width > 600) return 0.6; // Tablet - taller cards for buttons
+    return 0.58; // Mobile - taller cards for buttons
   }
 
   /// Get responsive horizontal list item width
