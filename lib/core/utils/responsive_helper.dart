@@ -31,9 +31,15 @@ class ResponsiveHelper {
   /// Adjusted to prevent overflow - cards need more vertical space
   static double getProductCardAspectRatio(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (width > 1200) return 0.62; // Desktop - taller cards for buttons
-    if (width > 600) return 0.6; // Tablet - taller cards for buttons
-    return 0.58; // Mobile - taller cards for buttons
+    final textScale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 1.8);
+    // Smaller aspect ratio => taller grid tiles.
+    // Larger text scale needs taller cards (smaller aspect ratio).
+    final textPenalty = (textScale - 1.0) * 0.10; // up to ~0.08
+
+    // Taller cards so product image can be longer (portrait-style) and avoid overflow.
+    if (width > 1200) return (0.68 - textPenalty).clamp(0.56, 0.70);
+    if (width > 600) return (0.64 - textPenalty).clamp(0.54, 0.66);
+    return (0.60 - textPenalty).clamp(0.50, 0.62);
   }
 
   /// Get responsive horizontal list item width

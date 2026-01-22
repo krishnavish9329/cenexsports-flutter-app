@@ -111,14 +111,33 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  double _getHeaderCollapsedHeight(BuildContext context) {
+    // Collapsed: only top row (logo + icons).
+    final topPadding = MediaQuery.of(context).padding.top;
+    final textScale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 1.6);
+    // kToolbarHeight is a good baseline for icon buttons row.
+    return topPadding + (kToolbarHeight + (textScale - 1.0) * 12.0);
+  }
+
+  double _getHeaderExpandedHeight(BuildContext context) {
+    // Expanded: top row + search bar.
+    final collapsed = _getHeaderCollapsedHeight(context);
+    final textScale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 1.6);
+    const searchBarHeight = 44.0;
+    final extraForTextScale = (textScale - 1.0) * 10.0;
+    return collapsed + AppTheme.spacingS + searchBarHeight + AppTheme.spacingS + extraForTextScale;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartProvider = provider_package.Provider.of<CartProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final categoriesAsync = ref.watch(categoriesProvider);
+    final collapsedHeaderHeight = _getHeaderCollapsedHeight(context);
+    final expandedHeaderHeight = _getHeaderExpandedHeight(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _loadProducts,
         child: CustomScrollView(
@@ -128,14 +147,22 @@ class _HomePageState extends ConsumerState<HomePage> {
             SliverAppBar(
               pinned: true,
               floating: false,
-            backgroundColor: Colors.white,
-        elevation: 0,
+              primary: false,
+              backgroundColor: Colors.white,
+              elevation: _isScrolled ? 1 : 0,
               automaticallyImplyLeading: false,
-            expandedHeight: 120,
-            flexibleSpace: FlexibleSpaceBar(
-              background: _buildCustomHeader(context, cartProvider),
+              collapsedHeight: collapsedHeaderHeight,
+              expandedHeight: expandedHeaderHeight,
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  final currentHeight = constraints.biggest.height;
+                  final t = ((currentHeight - collapsedHeaderHeight) /
+                          (expandedHeaderHeight - collapsedHeaderHeight))
+                      .clamp(0.0, 1.0);
+                  return _buildCustomHeader(context, cartProvider, expandFactor: t);
+                },
+              ),
             ),
-          ),
           // Promotional Banner
           SliverToBoxAdapter(
             child: _buildPromotionalBanner(context),
@@ -459,14 +486,18 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildCustomHeader(BuildContext context, CartProvider cartProvider) {
+  Widget _buildCustomHeader(
+    BuildContext context,
+    CartProvider cartProvider, {
+    double expandFactor = 1.0,
+  }) {
     return Container(
       color: Colors.white,
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top,
         left: AppTheme.spacingM,
         right: AppTheme.spacingM,
-        bottom: AppTheme.spacingS,
+        bottom: 0,
       ),
       child: Column(
         children: [
@@ -542,44 +573,60 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingS),
-          // Search Bar
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SearchPage()),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.search, size: 20, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'ruched top',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
+          // Search Bar (collapses on scroll)
+          ClipRect(
+            child: Align(
+              alignment: Alignment.topCenter,
+              heightFactor: expandFactor,
+              child: Column(
+                children: [
+                  const SizedBox(height: AppTheme.spacingS),
+                  IgnorePointer(
+                    ignoring: expandFactor < 0.05,
+                    child: Opacity(
+                      opacity: expandFactor,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SearchPage()),
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.search, size: 20, color: Colors.grey),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'ruched top',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                    const Icon(Icons.mic, size: 20, color: Colors.grey),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                        const Icon(Icons.mic, size: 20, color: Colors.grey),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -610,10 +657,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
 
         return Container(
-          margin: EdgeInsets.all(horizontalPadding),
+          margin: EdgeInsets.only(
+            left: horizontalPadding,
+            right: horizontalPadding,
+            bottom: horizontalPadding,
+          ),
           height: bannerHeight,
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceContainerHighest : const Color(0xFFF5E6E6), // Light dusty pink
+            color: isDark ? colorScheme.surfaceContainerHighest : const Color(0xFFF5E6E6), // Light dusty pink (matches poster image tone)
             borderRadius: BorderRadius.circular(AppTheme.radiusL),
           ),
           child: Row(
@@ -624,110 +675,116 @@ class _HomePageState extends ConsumerState<HomePage> {
                     left: horizontalPadding,
                     right: horizontalPadding * 0.5,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // New Collection Button
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF5D4037),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'New Collection',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12 * effectiveFontScale,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: isCompact ? 6 : AppTheme.spacingS),
-                      // Discount Text
-                      Text(
-                        'Enjoy 20% Discount',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 20 * effectiveFontScale,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF5D4037),
-                        ),
-                      ),
-                      SizedBox(height: isCompact ? 6 : AppTheme.spacingS),
-                      // Shop Now Button
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CategoryPage(
-                                categoryName: 'All Products',
-                                products: _products,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // New Collection Button
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5D4037),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'New Collection',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12 * effectiveFontScale,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusS),
-                            border: Border.all(color: Colors.grey[300]!),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          SizedBox(height: isCompact ? 6 : AppTheme.spacingS),
+                          // Discount Text
+                          Text(
+                            'Enjoy 20% Discount',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 20 * effectiveFontScale,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF5D4037),
+                            ),
+                          ),
+                          SizedBox(height: isCompact ? 6 : AppTheme.spacingS),
+                          // Shop Now Button
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CategoryPage(
+                                    categoryName: 'All Products',
+                                    products: _products,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusS),
+                                border: Border.all(color: Colors.grey[300]!),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Shop Now',
+                                    style: TextStyle(
+                                      fontSize: 14 * effectiveFontScale,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.arrow_forward, size: 16 * effectiveFontScale, color: Colors.black87),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: isCompact ? 10 : AppTheme.spacingM),
+                          // Countdown Timer
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                'Shop Now',
+                                'Flash sale ends',
                                 style: TextStyle(
-                                  fontSize: 14 * effectiveFontScale,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  fontSize: 12 * effectiveFontScale,
+                                  color: Colors.black54,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Icon(Icons.arrow_forward, size: 16 * effectiveFontScale, color: Colors.black87),
+                              _buildTimerBox(
+                                _formatDuration(_remainingTime.inHours),
+                                fontSize: 14 * effectiveFontScale,
+                                padding: timerPadding,
+                              ),
+                              Text(' : ', style: TextStyle(fontSize: 14 * effectiveFontScale, fontWeight: FontWeight.bold)),
+                              _buildTimerBox(
+                                _formatDuration(_remainingTime.inMinutes.remainder(60)),
+                                fontSize: 14 * effectiveFontScale,
+                                padding: timerPadding,
+                              ),
+                              Text(' : ', style: TextStyle(fontSize: 14 * effectiveFontScale, fontWeight: FontWeight.bold)),
+                              _buildTimerBox(
+                                _formatDuration(_remainingTime.inSeconds.remainder(60)),
+                                fontSize: 14 * effectiveFontScale,
+                                padding: timerPadding,
+                              ),
                             ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: isCompact ? 10 : AppTheme.spacingM),
-                      // Countdown Timer
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            'Flash sale ends',
-                            style: TextStyle(
-                              fontSize: 12 * effectiveFontScale,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          _buildTimerBox(
-                            _formatDuration(_remainingTime.inHours),
-                            fontSize: 14 * effectiveFontScale,
-                            padding: timerPadding,
-                          ),
-                          Text(' : ', style: TextStyle(fontSize: 14 * effectiveFontScale, fontWeight: FontWeight.bold)),
-                          _buildTimerBox(
-                            _formatDuration(_remainingTime.inMinutes.remainder(60)),
-                            fontSize: 14 * effectiveFontScale,
-                            padding: timerPadding,
-                          ),
-                          Text(' : ', style: TextStyle(fontSize: 14 * effectiveFontScale, fontWeight: FontWeight.bold)),
-                          _buildTimerBox(
-                            _formatDuration(_remainingTime.inSeconds.remainder(60)),
-                            fontSize: 14 * effectiveFontScale,
-                            padding: timerPadding,
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -786,23 +843,33 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (categories.isEmpty) {
           return const SizedBox.shrink();
         }
+        final padding = ResponsiveHelper.getPadding(context);
+        final categoryItemSize = ResponsiveHelper.getCategoryItemSize(context);
+        // Some OEM devices (and accessibility settings) use larger textScaleFactor.
+        // Give the horizontal category list enough height to avoid RenderFlex overflow.
+        final textScale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 2.0);
+        final labelFontSize = 12.0 * textScale;
+        final labelHeight = labelFontSize * 1.25; // approximate line-height
+        final categoryListHeight = (categoryItemSize + 6 + labelHeight + 10).clamp(92.0, 220.0).toDouble();
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingM,
-                vertical: AppTheme.spacingS,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: padding, vertical: AppTheme.spacingS),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Shop by Categories',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                  const Expanded(
+                    child: Text(
+                      'Shop by Categories',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                   TextButton(
@@ -826,14 +893,14 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
             SizedBox(
-              height: 80,
+              height: categoryListHeight,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM),
+                padding: EdgeInsets.symmetric(horizontal: padding),
                 itemCount: categories.length > 10 ? 10 : categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
-                  return _buildCircularCategoryItem(category);
+                  return _buildCircularCategoryItem(category, categoryItemSize);
                 },
               ),
             ),
@@ -845,7 +912,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildCircularCategoryItem(CategoryModel category) {
+  Widget _buildCircularCategoryItem(CategoryModel category, double size) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -859,14 +926,15 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
       },
       child: Container(
-        width: 56,
+        width: size,
         margin: const EdgeInsets.only(right: AppTheme.spacingM),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
             // Circular Icon/Image
             Container(
-              width: 56,
-              height: 56,
+              width: size,
+              height: size,
                 decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
@@ -880,13 +948,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                         placeholder: (context, url) => const Center(
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        errorWidget: (context, url, error) => const Icon(
+                        errorWidget: (context, url, error) => Icon(
                           Icons.category,
+                          size: size * 0.38,
                           color: Colors.grey,
                         ),
                       ),
                     )
-                  : const Icon(Icons.category, color: Colors.grey),
+                  : Icon(Icons.category, size: size * 0.38, color: Colors.grey),
             ),
             const SizedBox(height: 4),
             // Category Name

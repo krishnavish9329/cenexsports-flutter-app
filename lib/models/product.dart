@@ -47,10 +47,13 @@ class Product {
     }
 
     // Get image URL
-    String imageUrl = '📦'; // Default emoji
+    String imageUrl = ''; // No image by default
     if (json['images'] != null && 
         (json['images'] as List).isNotEmpty) {
-      imageUrl = json['images'][0]['src'] ?? '📦';
+      final dynamic src = json['images'][0]['src'];
+      if (src is String && src.trim().isNotEmpty) {
+        imageUrl = src.trim();
+      }
     }
 
     // Get category
