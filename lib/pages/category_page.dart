@@ -177,10 +177,24 @@ class _CategoryPageState extends State<CategoryPage> {
       appBar: AppBar(
         title: Text(widget.categoryName),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.sort),
-            onPressed: _showFilterBottomSheet,
-            tooltip: 'Sort & Filter',
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            child: Material(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                onTap: _showFilterBottomSheet,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: const Icon(
+                    Icons.tune,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

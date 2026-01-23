@@ -32,11 +32,31 @@ android {
 
     buildTypes {
         release {
+            // Enable code shrinking, obfuscation, and optimization
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Split APKs by ABI to reduce size (optional - uncomment if you want separate APKs per architecture)
+    // This creates smaller APKs but multiple files. For single universal APK, keep this commented.
+    /*
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+            isUniversalApk = false
+        }
+    }
+    */
 }
 
 flutter {

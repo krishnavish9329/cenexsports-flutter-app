@@ -1038,7 +1038,17 @@ class _AuthPageState extends ConsumerState<AuthPage> with SingleTickerProviderSt
     );
 
     if (success && mounted) {
-      Navigator.pop(context);
+      if (widget.redirectToCheckout) {
+        // Navigate to checkout page after successful login
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CheckoutPage(),
+          ),
+        );
+      } else {
+        Navigator.pop(context);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Login successful!'),

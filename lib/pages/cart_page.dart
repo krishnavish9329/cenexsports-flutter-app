@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider_package;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../core/providers/cart_provider.dart';
 import '../core/theme/app_theme.dart';
 import '../widgets/section_header.dart';
 import '../presentation/pages/checkout_page.dart';
+import '../presentation/pages/auth_page.dart';
+import '../presentation/providers/auth_provider.dart';
 import 'product_detail_page.dart';
 import 'main_navigation.dart';
 
-class CartPage extends StatefulWidget {
+class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
 
   @override
-  State<CartPage> createState() => _CartPageState();
+  ConsumerState<CartPage> createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> {
+class _CartPageState extends ConsumerState<CartPage> {
   final TextEditingController _promoController = TextEditingController();
 
   @override
@@ -27,7 +30,7 @@ class _CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider = Provider.of<CartProvider>(context);
+    final cartProvider = provider_package.Provider.of<CartProvider>(context);
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
     return Scaffold(
@@ -455,12 +458,28 @@ class _CartPageState extends State<CartPage> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CheckoutPage(),
-                ),
-              );
+              // Check if user is logged in
+              final authState = ref.read(authProvider);
+              
+              if (authState.isAuthenticated) {
+                // User is logged in - navigate directly to checkout
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CheckoutPage(),
+                  ),
+                );
+              } else {
+                // User not logged in - navigate to login page first
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AuthPage(
+                      redirectToCheckout: true,
+                    ),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brownButtonColor,

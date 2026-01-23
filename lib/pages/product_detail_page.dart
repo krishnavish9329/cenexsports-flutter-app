@@ -16,6 +16,7 @@ import '../presentation/pages/email_checkout_page.dart';
 import '../presentation/pages/checkout_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/pages/auth_page.dart';
 
 class ProductDetailPage extends ConsumerStatefulWidget {
   final int productId;
@@ -675,7 +676,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   final authState = ref.read(authProvider);
                   
                   if (authState.isAuthenticated) {
-                    // Navigate directly to checkout
+                    // User is logged in - navigate directly to checkout
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -683,11 +684,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       ),
                     );
                   } else {
-                    // Navigate to email-first checkout for login/guest
+                    // User not logged in - navigate to login page first
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EmailCheckoutPage(),
+                        builder: (context) => const AuthPage(
+                          redirectToCheckout: true,
+                        ),
                       ),
                     );
                   }
@@ -699,7 +702,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   shape: const StadiumBorder(),
                 ),
                 child: Text(
-                  'Buy at ₹${product.price.toStringAsFixed(0)}',
+                  'Buy Now',
                   style: AppTextStyles.button,
                 ),
               ),
