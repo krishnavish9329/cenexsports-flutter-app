@@ -133,7 +133,17 @@ class _SearchPageState extends State<SearchPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            // Try to pop first (if pushed as a route)
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              // If part of MainNavigation, navigate to Home (index 0)
+              // This will be handled by the bottom navigation bar
+              // Just unfocus the keyboard
+              FocusScope.of(context).unfocus();
+            }
+          },
         ),
         title: TextField(
           controller: _searchController,

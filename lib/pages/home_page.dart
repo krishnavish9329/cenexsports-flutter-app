@@ -140,9 +140,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: const Color(0xFFFAFAFA),
       body: RefreshIndicator(
         onRefresh: _loadProducts,
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
+        child: ScrollbarTheme(
+          data: const ScrollbarThemeData(
+            thickness: MaterialStatePropertyAll(0),
+          ),
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
           // Custom Header with Location and Icons
             SliverAppBar(
               pinned: true,
@@ -165,7 +169,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           // Spacing between header and banner
           SliverToBoxAdapter(
-            child: const SizedBox(height: AppTheme.spacingM),
+            child: const SizedBox(height: AppTheme.spacingS),
           ),
           // Promotional Banner
           SliverToBoxAdapter(
@@ -486,6 +490,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
         ),
+        ),
       ),
     );
   }
@@ -666,8 +671,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           margin: EdgeInsets.only(
             left: horizontalPadding,
             right: horizontalPadding,
-            top: AppTheme.spacingM,
-            bottom: AppTheme.spacingM,
+            top: AppTheme.spacingS,
+            bottom: AppTheme.spacingS,
           ),
           height: bannerHeight,
           decoration: BoxDecoration(
