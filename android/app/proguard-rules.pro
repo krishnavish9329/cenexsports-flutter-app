@@ -67,3 +67,28 @@
 # Keep line numbers for stack traces
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Ignore missing Google Play Core classes (only needed for dynamic features)
+-dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
+-keep class com.google.android.play.core.** { *; }
+
+# Keep Flutter widgets and layout classes to prevent UI issues
+-keep class * extends android.view.View
+-keep class * extends android.view.ViewGroup
+-keepclassmembers class * extends android.view.View {
+    <init>(...);
+}
+-keepclassmembers class * extends android.view.ViewGroup {
+    <init>(...);
+}
+
+# Keep Flutter engine classes
+-keep class io.flutter.embedding.** { *; }
+-keep class io.flutter.plugin.** { *; }
+
+# Keep all Flutter framework classes to prevent layout issues
+-keep class io.flutter.** { *; }
+-keep class androidx.** { *; }
+-dontwarn androidx.**

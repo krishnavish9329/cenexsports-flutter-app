@@ -34,7 +34,9 @@ android {
         release {
             // Enable code shrinking, obfuscation, and optimization
             isMinifyEnabled = true
-            isShrinkResources = true
+            // Disable resource shrinking to prevent UI layout issues
+            // Resource shrinking can remove necessary resources and cause spacing issues
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

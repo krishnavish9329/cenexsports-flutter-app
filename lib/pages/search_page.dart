@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/search_storage_service.dart';
 import '../widgets/product_card.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/responsive_helper.dart';
+import '../core/providers/cart_provider.dart';
 import 'product_detail_page.dart';
+import 'cart_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -125,66 +128,187 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
+    
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        titleSpacing: 0,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            // Try to pop first (if pushed as a route)
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              // If part of MainNavigation, navigate to Home (index 0)
-              // This will be handled by the bottom navigation bar
-              // Just unfocus the keyboard
-              FocusScope.of(context).unfocus();
-            }
-          },
-        ),
-        title: TextField(
-          controller: _searchController,
-          autofocus: true,
-          textInputAction: TextInputAction.search,
-          onSubmitted: _performSearch,
-          onChanged: _onSearchChanged,
-          decoration: InputDecoration(
-            hintText: 'Search for products, brands and more',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_searchController.text.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.grey),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        _hasSearched = false;
-                        _searchResults = [];
-                        _suggestions = [];
-                        _errorMessage = null;
-                      });
-                    },
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.search, color: AppTheme.primaryColor),
-                  onPressed: () {
-                    _performSearch(_searchController.text);
-                    FocusScope.of(context).unfocus(); // Dismiss keyboard
-                  },
+      body: Column(
+        children: [
+          // Custom Header (same as home page)
+          _buildCustomHeader(context, cartProvider),
+          // Search Bar
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingM,
+              vertical: AppTheme.spacingM,
+            ),
+            child: TextField(
+              controller: _searchController,
+              autofocus: true,
+              textInputAction: TextInputAction.search,
+              onSubmitted: _performSearch,
+              onChanged: (value) {
+                _onSearchChanged(value);
+                setState(() {}); // Update UI for clear button
+              },
+              decoration: InputDecoration(
+                hintText: 'Search for products, brands and more',
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
                 ),
-              ],
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppTheme.primaryColor, width: 1),
+                ),
+                hintStyle: TextStyle(color: Colors.grey[400]),
+                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _hasSearched = false;
+                            _searchResults = [];
+                            _suggestions = [];
+                            _errorMessage = null;
+                          });
+                        },
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.mic, color: Colors.grey),
+                      onPressed: () {
+                        // Voice search functionality can be added here
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              style: const TextStyle(color: Colors.black, fontSize: 14),
             ),
           ),
-          style: const TextStyle(color: Colors.black, fontSize: 16),
-        ),
+          // Body Content
+          Expanded(
+            child: _buildBody(),
+          ),
+        ],
       ),
-      body: _buildBody(),
+    );
+  }
+
+  Widget _buildCustomHeader(BuildContext context, CartProvider cartProvider) {
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+        left: AppTheme.spacingM,
+        right: AppTheme.spacingM,
+        bottom: 0,
+      ),
+      child: Row(
+        children: [
+          // Back Button
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 24),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                FocusScope.of(context).unfocus();
+              }
+            },
+          ),
+          // App Logo + Name
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/app_icon.png',
+                width: 24,
+                height: 24,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.shopping_bag, size: 16, color: Colors.white),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'cenexsports',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          // Shopping Bag
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_bag_outlined, color: Colors.black87, size: 24),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CartPage()),
+                  );
+                },
+              ),
+              if (cartProvider.itemCount > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.errorColor,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Text(
+                      cartProvider.itemCount > 9 ? '9+' : '${cartProvider.itemCount}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // Bell Icon
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: Colors.black87, size: 24),
+            onPressed: () {},
+          ),
+        ],
+      ),
     );
   }
 

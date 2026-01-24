@@ -137,7 +137,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final expandedHeaderHeight = _getHeaderExpandedHeight(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _loadProducts,
         child: ScrollbarTheme(
@@ -167,10 +167,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
               ),
             ),
-          // Spacing between header and banner
-          SliverToBoxAdapter(
-            child: const SizedBox(height: AppTheme.spacingS),
-          ),
           // Promotional Banner
           SliverToBoxAdapter(
             child: _buildPromotionalBanner(context),
@@ -179,7 +175,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           SliverToBoxAdapter(
             child: _buildCategoriesSection(context, categoriesAsync),
           ),
-
           // On Sale Section
           if (_isLoading)
               SliverToBoxAdapter(
@@ -438,20 +433,60 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SectionHeader(
-                      title: 'All Products',
-                      actionLabel: 'See All',
-                      onActionTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                            builder: (context) => CategoryPage(
-                              categoryName: 'All Products',
-                              products: _products,
-                                      ),
-                                    ),
-                                  );
-                                },
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: AppTheme.spacingM,
+                        right: AppTheme.spacingM,
+                        top: 0,
+                        bottom: AppTheme.spacingM,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'All Products',
+                            style: AppTextStyles.h3.copyWith(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CategoryPage(
+                                    categoryName: 'All Products',
+                                    products: _products,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFFAECEC),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'See All',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -640,7 +675,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: AppTheme.spacingM),
                 ],
               ),
             ),
@@ -671,8 +705,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           margin: EdgeInsets.only(
             left: horizontalPadding,
             right: horizontalPadding,
-            top: AppTheme.spacingS,
-            bottom: AppTheme.spacingS,
+            top: 0,
+            bottom: 0,
           ),
           height: bannerHeight,
           decoration: BoxDecoration(
@@ -796,7 +830,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                   child: Image.asset(
                     'assets/images/promo_model.jpg',
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.centerRight,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         color: Colors.grey[300],
@@ -833,7 +868,12 @@ class _HomePageState extends ConsumerState<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: padding, vertical: AppTheme.spacingM),
+              padding: EdgeInsets.only(
+                left: padding,
+                right: padding,
+                top: 0,
+                bottom: 0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -883,7 +923,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
               ),
             ),
-            const SizedBox(height: AppTheme.spacingM),
           ],
         );
       },

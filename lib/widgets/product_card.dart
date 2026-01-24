@@ -29,10 +29,8 @@ class ProductCard extends StatelessWidget {
         final imageUrl = product.imageUrl.trim();
         final isNetworkImage = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
         final fallbackIconSize = (constraints.maxWidth * 0.35).clamp(28.0, 48.0);
-        // Make image taller like the reference by giving it a fixed fraction
-        // of the grid tile height (instead of AspectRatio > 1 which makes it short).
-        // Keep image tall like reference, but give enough room to text/button to avoid overflow.
-        final imageFlex = isCompact ? 64 : 66; // ~65% height to image
+        // Image takes smaller portion to make it more compact
+        final imageFlex = isCompact ? 55 : 58; // ~55-58% height to image (reduced from 64-66%)
         final infoFlex = 100 - imageFlex;
 
         return DecoratedBox(
