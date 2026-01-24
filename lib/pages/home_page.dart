@@ -438,7 +438,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         left: AppTheme.spacingM,
                         right: AppTheme.spacingM,
                         top: 0,
-                        bottom: AppTheme.spacingM,
+                        bottom: AppTheme.spacingS,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -446,7 +446,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           Text(
                             'All Products',
                             style: AppTextStyles.h3.copyWith(
-                              color: Colors.black87,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.2,
                             ),
@@ -464,7 +464,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               );
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFFFAECEC),
+                              foregroundColor: Theme.of(context).colorScheme.primary,
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             ),
                             child: Row(
@@ -877,7 +877,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Shop by Categories',
                       maxLines: 1,
@@ -885,7 +885,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -899,11 +899,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'See All',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppTheme.primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

@@ -129,107 +129,93 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
-    
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Custom Header (same as home page)
-          _buildCustomHeader(context, cartProvider),
-          // Search Bar
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingM,
-              vertical: AppTheme.spacingM,
-            ),
-            child: TextField(
-              controller: _searchController,
-              autofocus: true,
-              textInputAction: TextInputAction.search,
-              onSubmitted: _performSearch,
-              onChanged: (value) {
-                _onSearchChanged(value);
-                setState(() {}); // Update UI for clear button
-              },
-              decoration: InputDecoration(
-                hintText: 'Search for products, brands and more',
-                filled: true,
-                fillColor: Colors.grey[50],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.primaryColor, width: 1),
-                ),
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_searchController.text.isNotEmpty)
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header row: Back, Logo, Cart, Notifications
+            _buildHeader(context, cartProvider),
+            // Search bar
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingM,
+                vertical: AppTheme.spacingS,
+              ),
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                onSubmitted: _performSearch,
+                onChanged: (value) {
+                  _onSearchChanged(value);
+                  setState(() {});
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search products...',
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[400]!, width: 1),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  prefixIcon: Icon(Icons.search, size: 22, color: Colors.grey[600]),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.clear, size: 20, color: Colors.grey[600]),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _hasSearched = false;
+                              _searchResults = [];
+                              _suggestions = [];
+                              _errorMessage = null;
+                            });
+                          },
+                        ),
                       IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        icon: Icon(Icons.filter_list, size: 22, color: Colors.grey[600]),
                         onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _hasSearched = false;
-                            _searchResults = [];
-                            _suggestions = [];
-                            _errorMessage = null;
-                          });
+                          // Filter functionality can be added here
                         },
                       ),
-                    IconButton(
-                      icon: const Icon(Icons.mic, color: Colors.grey),
-                      onPressed: () {
-                        // Voice search functionality can be added here
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                style: const TextStyle(color: Colors.black87, fontSize: 14),
               ),
-              style: const TextStyle(color: Colors.black, fontSize: 14),
             ),
-          ),
-          // Body Content
-          Expanded(
-            child: _buildBody(),
-          ),
-        ],
+            Expanded(child: _buildBody()),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCustomHeader(BuildContext context, CartProvider cartProvider) {
+  Widget _buildHeader(BuildContext context, CartProvider cartProvider) {
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-        left: AppTheme.spacingM,
-        right: AppTheme.spacingM,
-        bottom: 0,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingS,
+        vertical: AppTheme.spacingS,
       ),
       child: Row(
         children: [
-          // Back Button
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 24),
-            onPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              } else {
-                FocusScope.of(context).unfocus();
-              }
-            },
-          ),
-          // App Logo + Name
+          // Logo + Name
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -254,7 +240,7 @@ class _SearchPageState extends State<SearchPage> {
               const Text(
                 'cenexsports',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                   letterSpacing: 0.5,
@@ -263,7 +249,7 @@ class _SearchPageState extends State<SearchPage> {
             ],
           ),
           const Spacer(),
-          // Shopping Bag
+          // Cart
           Stack(
             children: [
               IconButton(
@@ -285,10 +271,7 @@ class _SearchPageState extends State<SearchPage> {
                       color: AppTheme.errorColor,
                       shape: BoxShape.circle,
                     ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     child: Text(
                       cartProvider.itemCount > 9 ? '9+' : '${cartProvider.itemCount}',
                       style: const TextStyle(
@@ -302,7 +285,6 @@ class _SearchPageState extends State<SearchPage> {
                 ),
             ],
           ),
-          // Bell Icon
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.black87, size: 24),
             onPressed: () {},
@@ -331,34 +313,44 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     if (!_hasSearched) {
-      // Show suggestions if available and user hasn't hit search yet
       if (_suggestions.isNotEmpty && _searchController.text.isNotEmpty) {
         return _buildSuggestionsList();
       }
-      return _buildHistoryView();
+      if (_searchHistory.isNotEmpty) {
+        return _buildHistoryView();
+      }
+      return _buildNoProductsView();
     }
 
     if (_searchResults.isEmpty) {
-      return _buildEmptyState();
+      return _buildNoProductsView();
     }
 
     return _buildResultsGrid();
   }
 
-  Widget _buildHistoryView() {
-    if (_searchHistory.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.history, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('No recent searches', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
-      );
-    }
+  /// Empty state: large magnifying glass + "No products found" (match first image)
+  Widget _buildNoProductsView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search, size: 80, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No products found',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildHistoryView() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -368,7 +360,7 @@ class _SearchPageState extends State<SearchPage> {
             const Text(
               'Recent Searches',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ), // Fixed closing parenthesis
+            ),
             if (_searchHistory.isNotEmpty)
               TextButton(
                 onPressed: _clearHistory,
@@ -417,46 +409,6 @@ class _SearchPageState extends State<SearchPage> {
         )).toList(),
         */
       ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.red[50], // Light red background
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.sentiment_dissatisfied, 
-              size: 64, 
-              color: Colors.red[400]
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Sorry, no results found!',
-            style: TextStyle(
-              fontSize: 20, 
-              fontWeight: FontWeight.bold,
-              color: Colors.black87
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              'Please check the spelling or try searching for something else',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 16),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

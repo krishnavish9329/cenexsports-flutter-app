@@ -18,6 +18,7 @@ class SectionHeader extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingM, vertical: AppTheme.spacingM),
       child: Row(
@@ -26,7 +27,7 @@ class SectionHeader extends StatelessWidget {
           Text(
             title,
             style: AppTextStyles.h3.copyWith(
-              color: Colors.black87,
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.2,
             ),
@@ -35,7 +36,7 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onActionTap,
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFAECEC), // Light peach/pink color from image
+                foregroundColor: colorScheme.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               ),
               child: Row(
