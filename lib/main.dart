@@ -7,6 +7,7 @@ import 'l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/cart_provider.dart';
 import 'core/providers/language_provider.dart';
+import 'core/providers/wishlist_provider.dart';
 import 'core/config/api_config.dart';
 import 'pages/main_navigation.dart';
 import 'pages/splash_page.dart';
@@ -43,8 +44,11 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(languageProvider);
     
-    return provider.ChangeNotifierProvider(
-      create: (_) => CartProvider(),
+    return provider.MultiProvider(
+      providers: [
+        provider.ChangeNotifierProvider(create: (_) => CartProvider()),
+        provider.ChangeNotifierProvider(create: (_) => WishlistProvider()),
+      ],
       child: MaterialApp(
         title: 'CENEX',
       debugShowCheckedModeBanner: false,

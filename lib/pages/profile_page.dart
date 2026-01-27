@@ -23,7 +23,7 @@ class ProfilePage extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Theme.of(context).cardColor,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         toolbarHeight: 0, // Hide default toolbar to use custom header
       ),
@@ -33,7 +33,7 @@ class ProfilePage extends ConsumerWidget {
           children: [
             // Custom Header
             Container(
-              color: Theme.of(context).cardColor,
+              color: Theme.of(context).appBarTheme.backgroundColor,
               width: double.infinity,
               padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
               child: Text(

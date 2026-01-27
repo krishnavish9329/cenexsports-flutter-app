@@ -36,7 +36,7 @@ class _CartPageState extends ConsumerState<CartPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F2F2),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,

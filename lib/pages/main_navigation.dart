@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'home_page.dart';
-import '../presentation/pages/categories/categories_screen.dart';
+import 'wishlist_page.dart';
 import 'category_page.dart';
 import 'cart_page.dart';
 import 'profile_page.dart';
@@ -29,15 +29,15 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _pages = [
     const HomePage(),
+    const WishlistPage(),
     const SearchPage(),
-    const CategoriesScreen(),
     const CartPage(),
     const ProfilePage(),
   ];
 
   // Map page index to destination index
-  // Page indices: 0=Home, 1=Search, 2=Categories, 3=Cart, 4=Account
-  // Destination indices: 0=Home, 1=Search, 2=Categories, 3=Cart, 4=Account
+  // Page indices: 0=Home, 1=Wishlist, 2=Search, 3=Cart, 4=Account
+  // Destination indices: 0=Home, 1=Wishlist, 2=Search, 3=Cart, 4=Account
   // They now match directly!
   int _getDestinationIndex(int pageIndex) {
     return pageIndex.clamp(0, 4);
@@ -71,14 +71,14 @@ class _MainNavigationState extends State<MainNavigation> {
             label: l10n?.home ?? 'Home',
           ),
           NavigationDestination(
+            icon: const Icon(Icons.favorite_outline),
+            selectedIcon: const Icon(Icons.favorite),
+            label: 'Wishlist',
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.search_outlined),
             selectedIcon: const Icon(Icons.search),
             label: l10n?.search ?? 'Search',
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.category_outlined),
-            selectedIcon: const Icon(Icons.category),
-            label: l10n?.categories ?? 'Categories',
           ),
           NavigationDestination(
             icon: const Icon(Icons.shopping_cart_outlined),

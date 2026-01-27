@@ -39,16 +39,16 @@ class AppTheme {
         secondary: secondaryColor,
         error: errorColor,
       ),
-      scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+      scaffoldBackgroundColor: const Color(0xFFFDF8F3),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF7F7F5),
+        foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Colors.black,
         ),
       ),
       cardTheme: CardThemeData(

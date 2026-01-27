@@ -34,7 +34,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           ),
         ),
         centerTitle: false,
-        backgroundColor: Theme.of(context).cardColor,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         actions: [

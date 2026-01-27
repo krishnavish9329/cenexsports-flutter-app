@@ -4,21 +4,30 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../core/theme/app_theme.dart';
 import '../core/providers/cart_provider.dart';
+import '../core/providers/wishlist_provider.dart';
 import 'price_widget.dart';
 
 /// Modern, clean product card widget matching the design reference
 class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
+  final bool isWishlisted;
+  final VoidCallback? onWishlistTap;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onTap,
+    this.isWishlisted = false,
+    this.onWishlistTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Watch WishlistProvider to update UI when wishlist changes
+    final wishlistProvider = Provider.of<WishlistProvider>(context);
+    final isWishlisted = wishlistProvider.isInWishlist(product.id);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 160;
@@ -83,33 +92,11 @@ class ProductCard extends StatelessWidget {
                                   color: Colors.grey[100],
                                   child: Icon(Icons.image, size: fallbackIconSize, color: Colors.grey[400]),
                                 ),
-                          // Category badge
-                          Positioned(
-                            top: 10,
-                            left: 10,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                product.category.isNotEmpty ? product.category : 'Product',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF5D4037),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Discount badge
+                          // Discount badge (top-left)
                           if (product.discount > 0)
                             Positioned(
                               top: 10,
-                              right: 10,
+                              left: 10,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
@@ -117,7 +104,7 @@ class ProductCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  '-${product.discount}%',
+                                  '${product.discount}%',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -126,6 +113,47 @@ class ProductCard extends StatelessWidget {
                                 ),
                               ),
                             ),
+                          // Wishlist heart (top-right)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  if (onWishlistTap != null) {
+                                    onWishlistTap!();
+                                  } else {
+                                    wishlistProvider.toggleWishlist(product);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isWishlisted
+                                              ? '${product.name} removed from wishlist'
+                                              : '${product.name} added to wishlist',
+                                        ),
+                                        duration: const Duration(seconds: 1),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                    size: 18,
+                                    color: isWishlisted ? Colors.red : Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -159,8 +187,9 @@ class ProductCard extends StatelessWidget {
                               const SizedBox(height: 6),
                               PriceWidget(
                                 price: product.price,
-                                originalPrice: product.originalPrice > product.price ? product.originalPrice : null,
-                                discount: null,
+                                originalPrice: product.originalPrice,
+                                discount: product.discount > 0 ? product.discount : null,
+                                showLabels: true,
                                 priceStyle: AppTextStyles.bodyMedium.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primaryColor,
@@ -200,16 +229,14 @@ class ProductCard extends StatelessWidget {
                                 size: buttonIconSize,
                                 color: Colors.white,
                               ),
-                              label: Flexible(
-                                child: Text(
-                                  'Add to Cart',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: buttonFontSize,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
+                              label: Text(
+                                'Add to Cart',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: buttonFontSize,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),

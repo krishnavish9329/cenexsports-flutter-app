@@ -1,8 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider_package;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../widgets/product_card.dart';
@@ -30,36 +31,17 @@ class _HomePageState extends ConsumerState<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   List<Product> _products = [];
-  List<Product> _onSaleProducts = [];
   List<Product> _bestSellers = [];
   bool _isLoading = true;
   String? _errorMessage;
   bool _isScrolled = false;
-  
-  // Timer state
-  Timer? _flashSaleTimer;
-  Duration _remainingTime = const Duration(hours: 1, minutes: 18, seconds: 23);
+  int _bannerIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _startFlashSaleTimer();
     _loadProducts();
-  }
-  
-  void _startFlashSaleTimer() {
-    _flashSaleTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          if (_remainingTime.inSeconds > 0) {
-            _remainingTime = _remainingTime - const Duration(seconds: 1);
-          } else {
-            _flashSaleTimer?.cancel();
-          }
-        });
-      }
-    });
   }
 
   Future<void> _loadProducts() async {
@@ -72,8 +54,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       final products = await ApiService.getProducts();
       setState(() {
         _products = products;
-        // Products on sale (with discount > 0)
-        _onSaleProducts = products.where((p) => p.discount > 0).take(10).toList();
         _bestSellers = products.where((p) => p.isBestSeller).take(10).toList();
         _isLoading = false;
       });
@@ -83,7 +63,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         _isLoading = false;
         // No fallback - show empty state
         _products = [];
-        _onSaleProducts = [];
         _bestSellers = [];
       });
     }
@@ -95,7 +74,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
-    _flashSaleTimer?.cancel();
     super.dispose();
   }
 
@@ -137,7 +115,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final expandedHeaderHeight = _getHeaderExpandedHeight(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFDF8F3),
       body: RefreshIndicator(
         onRefresh: _loadProducts,
         child: ScrollbarTheme(
@@ -152,7 +130,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               pinned: true,
               floating: false,
               primary: false,
-              backgroundColor: Colors.white,
+              backgroundColor: const Color(0xFFF7F7F5),
               elevation: _isScrolled ? 1 : 0,
               automaticallyImplyLeading: false,
               collapsedHeight: collapsedHeaderHeight,
@@ -167,9 +145,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
               ),
             ),
-          // Promotional Banner
+          // Banner Slider
           SliverToBoxAdapter(
-            child: _buildPromotionalBanner(context),
+            child: _buildBannerSlider(context),
           ),
           // Shop by Categories Section
           SliverToBoxAdapter(
@@ -204,60 +182,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     );
                   },
                 ),
-              )
-          else if (_onSaleProducts.isNotEmpty)
-              SliverToBoxAdapter(
-                        child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                    SectionHeader(
-                    title: 'On Sale',
-                      actionLabel: 'See All',
-                      onActionTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CategoryPage(
-                            categoryName: 'On Sale',
-                            products: _onSaleProducts,
-                          ),
-                          ),
-                        );
-                      },
-                    ),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final itemWidth = ResponsiveHelper.getHorizontalListItemWidth(context);
-                        final listHeight = ResponsiveHelper.getHorizontalListHeight(context);
-                        return ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxHeight: listHeight,
-                            minHeight: 280,
-                          ),
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: ResponsiveHelper.getPadding(context),
-                            ),
-                          itemCount: _onSaleProducts.length > 2 ? 2 : _onSaleProducts.length,
-                            itemBuilder: (context, index) {
-                            final product = _onSaleProducts[index];
-                              return Container(
-                                width: itemWidth,
-                                margin: EdgeInsets.only(
-                                  right: ResponsiveHelper.getPadding(context),
-                                ),
-                              child: _buildOnSaleProductCard(product),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                            ),
-                          ],
-                        ),
               ),
-
             // Best Sellers Section - Responsive Grid
             if (_isLoading)
               SliverPadding(
@@ -438,7 +363,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         left: AppTheme.spacingM,
                         right: AppTheme.spacingM,
                         top: 0,
-                        bottom: AppTheme.spacingS,
+                        bottom: 0,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -497,10 +422,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                             ? crossAxisCount * 4 
                             : _products.length;
                         return Padding(
-                          padding: EdgeInsets.symmetric(horizontal: padding),
+                          padding: EdgeInsets.only(left: padding, right: padding, top: 0, bottom: 0),
                           child: GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: crossAxisCount,
                               childAspectRatio: aspectRatio,
@@ -536,7 +462,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     double expandFactor = 1.0,
   }) {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFFF7F7F5),
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top,
         left: AppTheme.spacingM,
@@ -684,167 +610,190 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildPromotionalBanner(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final padding = ResponsiveHelper.getPadding(context);
-        final fontScale = ResponsiveHelper.getFontScale(context);
-        final isCompact = width < 360;
-        final effectiveFontScale = fontScale * (isCompact ? 0.9 : 1.0);
-        final bannerHeight = (width * 0.40)
-            .clamp(160.0, 200.0)
-            .toDouble();
-        final imageWidth = (width * 0.35)
-            .clamp(120.0, 180.0)
-            .toDouble();
-        final iconSize = (imageWidth * 0.6).clamp(48.0, 88.0).toDouble();
-        final horizontalPadding = padding;
-
-        return Container(
-          margin: EdgeInsets.only(
-            left: horizontalPadding,
-            right: horizontalPadding,
-            top: 0,
-            bottom: 0,
-          ),
-          height: bannerHeight,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFF5E6E6),
-                const Color(0xFFF0D9D9),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Stack(
+  Widget _buildBannerSlider(BuildContext context) {
+    final padding = ResponsiveHelper.getPadding(context);
+    return Padding(
+      padding: EdgeInsets.only(left: padding, right: padding, top: 0, bottom: 0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final fontScale = ResponsiveHelper.getFontScale(context);
+          final isCompact = width < 360;
+          final effectiveFontScale = fontScale * (isCompact ? 0.9 : 1.0);
+          final bannerHeight = (width * 0.40).clamp(160.0, 200.0).toDouble();
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Content on the left
-              Positioned(
-                left: horizontalPadding,
-                top: 0,
-                bottom: 0,
-                right: imageWidth + horizontalPadding,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // New Collection Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF5D4037),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'New Collection',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11 * effectiveFontScale,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      // Discount Text
-                      Text(
-                        'Enjoy 20%\nDiscount',
-                        maxLines: 2,
-                        style: TextStyle(
-                          fontSize: 22 * effectiveFontScale,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF5D4037),
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Shop Now Button
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CategoryPage(
-                                categoryName: 'All Products',
-                                products: _products,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Shop Now',
-                                style: TextStyle(
-                                  fontSize: 13 * effectiveFontScale,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Icon(Icons.arrow_forward_ios, size: 12 * effectiveFontScale, color: Colors.black87),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // Image on the right
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: imageWidth,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
-                  child: Image.asset(
-                    'assets/images/promo_model.jpg',
-                    fit: BoxFit.contain,
-                    alignment: Alignment.centerRight,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: Icon(Icons.person, size: iconSize, color: Colors.grey),
-                      );
+              SizedBox(
+                height: bannerHeight,
+                child: CarouselSlider.builder(
+                  itemCount: 3,
+                  itemBuilder: (context, index, realIndex) {
+                    return _buildBannerSlide(context, width, bannerHeight, effectiveFontScale);
+                  },
+                  options: CarouselOptions(
+                    height: bannerHeight,
+                    viewportFraction: 1.0,
+                    enlargeCenterPage: false,
+                    onPageChanged: (index, reason) {
+                      if (mounted) setState(() => _bannerIndex = index);
                     },
                   ),
                 ),
               ),
+              const SizedBox(height: 10),
+              AnimatedSmoothIndicator(
+                activeIndex: _bannerIndex,
+                count: 3,
+                effect: ExpandingDotsEffect(
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  expansionFactor: 4,
+                  spacing: 6,
+                  activeDotColor: const Color(0xFF5D4037),
+                  dotColor: const Color(0xFF5D4037).withOpacity(0.3),
+                ),
+              ),
             ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBannerSlide(BuildContext context, double width, double bannerHeight, double effectiveFontScale) {
+    final horizontalPadding = (width * 0.04).clamp(12.0, 20.0).toDouble();
+    final imageWidth = (width * 0.35).clamp(120.0, 180.0).toDouble();
+    final iconSize = (imageWidth * 0.6).clamp(48.0, 88.0).toDouble();
+    return Container(
+      width: width,
+      height: bannerHeight,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF5E6E6), Color(0xFFF0D9D9)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        );
-      },
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: horizontalPadding,
+            top: 0,
+            bottom: 0,
+            right: imageWidth + horizontalPadding,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF5D4037),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'New Collection',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11 * effectiveFontScale,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Enjoy 20%\nDiscount',
+                    maxLines: 2,
+                    style: TextStyle(
+                      fontSize: 22 * effectiveFontScale,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF5D4037),
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryPage(
+                            categoryName: 'All Products',
+                            products: _products,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Shop Now',
+                            style: TextStyle(
+                              fontSize: 13 * effectiveFontScale,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_ios, size: 12 * effectiveFontScale, color: Colors.black87),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: imageWidth,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+              child: Image.asset(
+                'assets/images/promo_model.jpg',
+                fit: BoxFit.contain,
+                alignment: Alignment.centerRight,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Icon(Icons.person, size: iconSize, color: Colors.grey),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1012,13 +961,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildOnSaleProductCard(Product product) {
-    return ProductCard(
-      product: product,
-      onTap: () => _navigateToProductDetail(product),
     );
   }
 
