@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart' as provider_package;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -18,6 +19,7 @@ import 'product_detail_page.dart';
 import 'category_page.dart';
 import 'cart_page.dart';
 import 'search_page.dart';
+import 'main_navigation.dart';
 import '../presentation/pages/categories/categories_screen.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -36,26 +38,105 @@ class _HomePageState extends ConsumerState<HomePage> {
   String? _errorMessage;
   bool _isScrolled = false;
   int _bannerIndex = 0;
+  // Flash sale timer state
+  Duration _flashSaleDuration = const Duration(hours: 3, minutes: 15, seconds: 20);
+  // Pagination for All Products
+  int _displayedProductsCount = 0;
+  bool _isLoadingMore = false;
+  final int _productsPerPage = 5; // 5 rows at a time
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _scrollController.addListener(_onProductsScroll);
     _loadProducts();
+    _startFlashSaleTimer();
+  }
+  
+  void _onProductsScroll() {
+    if (!_scrollController.hasClients) return;
+    
+    // Calculate if user is near bottom (80% scrolled)
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final threshold = maxScroll * 0.8;
+    
+    // Load more products when near bottom and not already loading
+    if (currentScroll >= threshold && 
+        !_isLoadingMore && 
+        _displayedProductsCount < _products.length) {
+      _loadMoreProducts();
+    }
+  }
+  
+  void _loadMoreProducts() {
+    if (_isLoadingMore || _displayedProductsCount >= _products.length) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    // Simulate loading delay for smooth UX
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted && context.mounted) {
+        setState(() {
+          // Calculate products per row based on screen width
+          final screenWidth = MediaQuery.of(context).size.width;
+          final crossAxisCount = screenWidth > 600 ? 3 : (screenWidth > 400 ? 2 : 2);
+          final productsPerRow = crossAxisCount;
+          final productsToAdd = productsPerRow * _productsPerPage; // 5 rows
+          
+          _displayedProductsCount = (_displayedProductsCount + productsToAdd)
+              .clamp(0, _products.length);
+          _isLoadingMore = false;
+        });
+      }
+    });
+  }
+  
+  void _startFlashSaleTimer() {
+    // Update timer every second
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          if (_flashSaleDuration.inSeconds > 0) {
+            _flashSaleDuration = Duration(seconds: _flashSaleDuration.inSeconds - 1);
+          } else {
+            _flashSaleDuration = const Duration(hours: 24); // Reset to 24 hours when expired
+          }
+        });
+        _startFlashSaleTimer();
+      }
+    });
+  }
+  
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours : $minutes : $seconds';
   }
 
-  Future<void> _loadProducts() async {
+  Future<void> _loadProducts({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final products = await ApiService.getProducts();
+      // Load products with caching (forceRefresh only when user manually refreshes)
+      final products = await ApiService.getProducts(forceRefresh: forceRefresh);
       setState(() {
         _products = products;
         _bestSellers = products.where((p) => p.isBestSeller).take(10).toList();
         _isLoading = false;
+        // Initialize displayed products count (5 rows initially) - use default if context not available
+        if (_displayedProductsCount == 0) {
+          // Default to 2 columns, 5 rows = 10 products initially
+          final defaultProductsPerRow = 2;
+          _displayedProductsCount = (defaultProductsPerRow * _productsPerPage).clamp(0, products.length);
+        }
       });
     } catch (e) {
       setState(() {
@@ -72,6 +153,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
+    _scrollController.removeListener(_onProductsScroll);
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -117,7 +199,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF8F3),
       body: RefreshIndicator(
-        onRefresh: _loadProducts,
+        onRefresh: () => _loadProducts(forceRefresh: true),
         child: ScrollbarTheme(
           data: const ScrollbarThemeData(
             thickness: MaterialStatePropertyAll(0),
@@ -148,6 +230,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           // Banner Slider
           SliverToBoxAdapter(
             child: _buildBannerSlider(context),
+          ),
+          // Add spacing between banner and categories
+          SliverToBoxAdapter(
+            child: SizedBox(height: AppTheme.spacingL),
           ),
           // Shop by Categories Section
           SliverToBoxAdapter(
@@ -261,7 +347,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
 
-            // All Products Section - Responsive Grid
+            // All Products Section - Infinite Scroll Grid
             if (_isLoading)
               SliverPadding(
                 padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
@@ -279,7 +365,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => const ProductCardSkeleton(),
-                        childCount: crossAxisCount * 3, // Show 3 rows
+                        childCount: crossAxisCount * 5, // Show 5 rows initially
                       ),
                     );
                   },
@@ -355,100 +441,122 @@ class _HomePageState extends ConsumerState<HomePage> {
               )
             else
               SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppTheme.spacingM,
-                        right: AppTheme.spacingM,
-                        top: 0,
-                        bottom: 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: AppTheme.spacingM,
+                    right: AppTheme.spacingM,
+                    top: 0,
+                    bottom: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'All Products',
+                        style: AppTextStyles.h3.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.2,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'All Products',
-                            style: AppTextStyles.h3.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.2,
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CategoryPage(
+                                categoryName: 'All Products',
+                                products: _products,
+                              ),
                             ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CategoryPage(
-                                    categoryName: 'All Products',
-                                    products: _products,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: Theme.of(context).colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'See All',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  'See All',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 14,
-                                ),
-                              ],
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount = ResponsiveHelper.getGridCrossAxisCount(context);
-                        final aspectRatio = ResponsiveHelper.getProductCardAspectRatio(context);
-                        final padding = ResponsiveHelper.getPadding(context);
-                        final itemCount = _products.length > (crossAxisCount * 4) 
-                            ? crossAxisCount * 4 
-                            : _products.length;
-                        return Padding(
-                          padding: EdgeInsets.only(left: padding, right: padding, top: 0, bottom: 0),
-                          child: GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              childAspectRatio: aspectRatio,
-                              crossAxisSpacing: padding,
-                              mainAxisSpacing: padding,
-                            ),
-                            itemCount: itemCount,
-                            itemBuilder: (context, index) {
-                              final product = _products[index];
-                              return ProductCard(
-                                product: product,
-                                onTap: () => _navigateToProductDetail(product),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: AppTheme.spacingL),
-                  ],
-                          ),
-          ),
+                    ],
+                  ),
+                ),
+              ),
+            // All Products Grid with Infinite Scroll
+            if (!_isLoading && _products.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = ResponsiveHelper.getGridCrossAxisCount(context);
+                    final aspectRatio = ResponsiveHelper.getProductCardAspectRatio(context);
+                    final padding = ResponsiveHelper.getPadding(context);
+                    
+                    // Ensure displayed count is initialized
+                    if (_displayedProductsCount == 0) {
+                      final productsPerRow = crossAxisCount;
+                      _displayedProductsCount = (productsPerRow * _productsPerPage).clamp(0, _products.length);
+                    }
+                    
+                    final itemCount = _displayedProductsCount.clamp(0, _products.length);
+                    
+                    // If no items to show, show at least some products
+                    final actualItemCount = itemCount > 0 ? itemCount : _products.length.clamp(0, crossAxisCount * _productsPerPage);
+                    
+                    return SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: aspectRatio,
+                        crossAxisSpacing: padding,
+                        mainAxisSpacing: padding,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index < _products.length) {
+                            final product = _products[index];
+                            return ProductCard(
+                              product: product,
+                              onTap: () => _navigateToProductDetail(product),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                        childCount: actualItemCount,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            // Loading more indicator
+            if (_isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppTheme.spacingL),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ),
+            // Bottom spacing
+            if (!_isLoading && _products.isNotEmpty)
+              SliverToBoxAdapter(
+                child: const SizedBox(height: AppTheme.spacingL),
+              ),
         ],
         ),
         ),
@@ -568,10 +676,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                       opacity: expandFactor,
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const SearchPage()),
-                          );
+                          // Try to find MainNavigation in the widget tree and switch to search tab
+                          final mainNav = MainNavigationProvider.of(context);
+                          if (mainNav != null) {
+                            // We're inside MainNavigation, just switch tabs
+                            mainNav.switchToTab(2); // 2 = Search tab
+                          } else {
+                            // Not inside MainNavigation, navigate to it with search tab
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MainNavigation(initialIndex: 2),
+                              ),
+                              (route) => false,
+                            );
+                          }
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -620,7 +739,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           final fontScale = ResponsiveHelper.getFontScale(context);
           final isCompact = width < 360;
           final effectiveFontScale = fontScale * (isCompact ? 0.9 : 1.0);
-          final bannerHeight = (width * 0.40).clamp(160.0, 200.0).toDouble();
+          // Increased banner height to prevent overflow and accommodate all content
+          final bannerHeight = (width * 0.45).clamp(180.0, 220.0).toDouble();
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -629,12 +749,23 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: CarouselSlider.builder(
                   itemCount: 3,
                   itemBuilder: (context, index, realIndex) {
-                    return _buildBannerSlide(context, width, bannerHeight, effectiveFontScale);
+                    // Always use index (0, 1, 2) to ensure correct banner content
+                    // realIndex can be null or different due to infinite scroll
+                    final bannerIndex = index % 3; // Ensure it's always 0, 1, or 2
+                    return _buildBannerSlide(
+                      context, 
+                      width, 
+                      bannerHeight, 
+                      effectiveFontScale, 
+                      bannerIndex,
+                    );
                   },
                   options: CarouselOptions(
                     height: bannerHeight,
                     viewportFraction: 1.0,
                     enlargeCenterPage: false,
+                    enableInfiniteScroll: false, // Disable to ensure correct index mapping
+                    autoPlay: false,
                     onPageChanged: (index, reason) {
                       if (mounted) setState(() => _bannerIndex = index);
                     },
@@ -661,112 +792,265 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildBannerSlide(BuildContext context, double width, double bannerHeight, double effectiveFontScale) {
+  Widget _buildBannerSlide(BuildContext context, double width, double bannerHeight, double effectiveFontScale, int slideIndex) {
+    // Different content for each banner slide - ensure unique content per banner
+    // Map of banner data - each index has unique content
+    final Map<String, String> currentBanner;
+    
+    // Explicitly set content and image based on slideIndex (0, 1, or 2)
+    String bannerImage;
+    switch (slideIndex % 3) {
+      case 0:
+        currentBanner = {
+          'badge': 'New Collection',
+          'discount': '20%',
+          'headline': 'Enjoy 20% Discount',
+        };
+        bannerImage = 'assets/images/promo_model.jpg';
+        break;
+      case 1:
+        currentBanner = {
+          'badge': 'Summer Sale',
+          'discount': '30%',
+          'headline': 'Enjoy 30% Discount',
+        };
+        bannerImage = 'assets/images/promo_model_2.png';
+        break;
+      case 2:
+        currentBanner = {
+          'badge': 'Flash Sale',
+          'discount': '25%',
+          'headline': 'Enjoy 25% Discount',
+        };
+        bannerImage = 'assets/images/promo_model.jpg';
+        break;
+      default:
+        currentBanner = {
+          'badge': 'New Collection',
+          'discount': '20%',
+          'headline': 'Enjoy 20% Discount',
+        };
+        bannerImage = 'assets/images/promo_model.jpg';
+    }
+    
+    final validIndex = slideIndex % 3;
+    
+    // Responsive calculations
     final horizontalPadding = (width * 0.04).clamp(12.0, 20.0).toDouble();
-    final imageWidth = (width * 0.35).clamp(120.0, 180.0).toDouble();
+    final imageWidth = (width * 0.38).clamp(100.0, 160.0).toDouble();
     final iconSize = (imageWidth * 0.6).clamp(48.0, 88.0).toDouble();
+    
+    // Calculate available height for content (accounting for padding)
+    final contentHeight = bannerHeight - (horizontalPadding * 2);
+    final isCompact = bannerHeight < 180;
+    
+    // Responsive font scaling based on available space
+    final baseFontScale = isCompact ? 0.85 : 1.0;
+    final adjustedFontScale = effectiveFontScale * baseFontScale;
+    
+    // Premium color palette - soft pastels with premium accents
+    const primaryBrown = Color(0xFF5D4037);
+    const accentPink = Color(0xFFC97A7A); // Reddish-brown/pink for discount
+    const lightPinkBg = Color(0xFFF5E6E6);
+    const darkerPinkBg = Color(0xFFF0D9D9);
+    
+    // Responsive spacing
+    final smallSpacing = isCompact ? 6.0 : 8.0;
+    final mediumSpacing = isCompact ? 10.0 : 12.0;
+    final largeSpacing = isCompact ? 12.0 : 14.0;
+    
     return Container(
+      key: ValueKey('banner_$validIndex'), // Unique key for each banner (0, 1, 2)
       width: width,
       height: bannerHeight,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFF5E6E6), Color(0xFFF0D9D9)],
+          colors: [lightPinkBg, darkerPinkBg],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: Stack(
         children: [
+          // Left content section - responsive with constraints
           Positioned(
             left: horizontalPadding,
-            top: 0,
-            bottom: 0,
+            top: horizontalPadding,
+            bottom: horizontalPadding,
             right: imageWidth + horizontalPadding,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF5D4037),
-                      borderRadius: BorderRadius.circular(12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                    child: Text(
-                      'New Collection',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11 * effectiveFontScale,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Enjoy 20%\nDiscount',
-                    maxLines: 2,
-                    style: TextStyle(
-                      fontSize: 22 * effectiveFontScale,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF5D4037),
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CategoryPage(
-                            categoryName: 'All Products',
-                            products: _products,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
+                    child: IntrinsicHeight(
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Shop Now',
-                            style: TextStyle(
-                              fontSize: 13 * effectiveFontScale,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                          // Premium "New Collection" badge - pill-shaped
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10 * adjustedFontScale,
+                              vertical: 5 * adjustedFontScale,
+                            ),
+                            decoration: BoxDecoration(
+                              color: primaryBrown,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              currentBanner['badge'] as String,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9 * adjustedFontScale,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_ios, size: 12 * effectiveFontScale, color: Colors.black87),
+                          SizedBox(height: smallSpacing * adjustedFontScale),
+                          // Premium headline - single line style matching reference
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: 22 * adjustedFontScale,
+                                  fontWeight: FontWeight.w800,
+                                  color: primaryBrown,
+                                  height: 1.15,
+                                  letterSpacing: -0.3,
+                                ),
+                                children: [
+                                  TextSpan(text: 'Enjoy '),
+                                  TextSpan(
+                                    text: currentBanner['discount'] as String,
+                                    style: TextStyle(
+                                      color: accentPink,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const TextSpan(text: ' Discount'),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: mediumSpacing * adjustedFontScale),
+                          // Premium CTA button with enhanced shadow
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CategoryPage(
+                                    categoryName: 'All Products',
+                                    products: _products,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16 * adjustedFontScale,
+                                vertical: 10 * adjustedFontScale,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.12),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Shop Now',
+                                    style: TextStyle(
+                                      fontSize: 13 * adjustedFontScale,
+                                      fontWeight: FontWeight.w700,
+                                      color: primaryBrown,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  SizedBox(width: 6 * adjustedFontScale),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 12 * adjustedFontScale,
+                                    color: primaryBrown,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: smallSpacing * adjustedFontScale),
+                          // Flash sale timer - responsive and compact
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Flash sale ends ',
+                                    style: TextStyle(
+                                      fontSize: 10 * adjustedFontScale,
+                                      fontWeight: FontWeight.w500,
+                                      color: primaryBrown.withOpacity(0.7),
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 6 * adjustedFontScale,
+                                      vertical: 3 * adjustedFontScale,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: primaryBrown.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      _formatDuration(_flashSaleDuration),
+                                      style: TextStyle(
+                                        fontSize: 11 * adjustedFontScale,
+                                        fontWeight: FontWeight.w700,
+                                        color: primaryBrown,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
           Positioned(
@@ -776,11 +1060,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             width: imageWidth,
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(20),
-                bottomRight: Radius.circular(20),
+                topRight: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
               child: Image.asset(
-                'assets/images/promo_model.jpg',
+                bannerImage,
                 fit: BoxFit.contain,
                 alignment: Alignment.centerRight,
                 errorBuilder: (context, error, stackTrace) {
@@ -799,20 +1083,81 @@ class _HomePageState extends ConsumerState<HomePage> {
 
 
   Widget _buildCategoriesSection(BuildContext context, AsyncValue<List<CategoryModel>> categoriesAsync) {
+    final padding = ResponsiveHelper.getPadding(context);
+    final categoryItemSize = ResponsiveHelper.getCategoryItemSize(context);
+    // Some OEM devices (and accessibility settings) use larger textScaleFactor.
+    // Give the horizontal category list enough height to avoid RenderFlex overflow.
+    final textScale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 2.0);
+    final labelFontSize = 12.0 * textScale;
+    final labelHeight = labelFontSize * 1.25; // approximate line-height
+    final categoryListHeight = (categoryItemSize + 6 + labelHeight + 10).clamp(92.0, 220.0).toDouble();
+
     return categoriesAsync.when(
       data: (categories) {
         if (categories.isEmpty) {
-          return const SizedBox.shrink();
+          // Show header even if no categories
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  left: padding,
+                  right: padding,
+                  top: 0,
+                  bottom: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Shop by Categories',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CategoriesScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'See All',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: categoryListHeight,
+                child: Center(
+                  child: Text(
+                    'No categories available',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
         }
-        final padding = ResponsiveHelper.getPadding(context);
-        final categoryItemSize = ResponsiveHelper.getCategoryItemSize(context);
-        // Some OEM devices (and accessibility settings) use larger textScaleFactor.
-        // Give the horizontal category list enough height to avoid RenderFlex overflow.
-        final textScale = MediaQuery.textScaleFactorOf(context).clamp(1.0, 2.0);
-        final labelFontSize = 12.0 * textScale;
-        final labelHeight = labelFontSize * 1.25; // approximate line-height
-        final categoryListHeight = (categoryItemSize + 6 + labelHeight + 10).clamp(92.0, 220.0).toDouble();
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -875,8 +1220,169 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () {
+        // Show loading skeleton for categories
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                left: padding,
+                right: padding,
+                top: 0,
+                bottom: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Shop by Categories',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CategoriesScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'See All',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: categoryListHeight,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: padding),
+                itemCount: 8, // Show 8 skeleton items
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: categoryItemSize,
+                    margin: const EdgeInsets.only(right: AppTheme.spacingM),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: categoryItemSize,
+                          height: categoryItemSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: categoryItemSize * 0.6,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      error: (error, stackTrace) {
+        // Show error state but still show the section header
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                left: padding,
+                right: padding,
+                top: 0,
+                bottom: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Shop by Categories',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CategoriesScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'See All',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: categoryListHeight,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.grey[400],
+                      size: 32,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Failed to load categories',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -20,11 +20,20 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   late int _currentIndex;
+  static final GlobalKey<_MainNavigationState> navigationKey = GlobalKey<_MainNavigationState>();
   
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+  }
+  
+  void switchToTab(int index) {
+    if (mounted) {
+      setState(() {
+        _currentIndex = index.clamp(0, 4);
+      });
+    }
   }
 
   final List<Widget> _pages = [
@@ -52,19 +61,21 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _getDestinationIndex(_currentIndex),
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = _getPageIndex(index);
-          });
-        },
-        destinations: [
+    return MainNavigationProvider(
+      navigationState: this,
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _getDestinationIndex(_currentIndex),
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = _getPageIndex(index);
+            });
+          },
+          destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
             selectedIcon: const Icon(Icons.home),
@@ -90,8 +101,29 @@ class _MainNavigationState extends State<MainNavigation> {
             selectedIcon: const Icon(Icons.person),
             label: l10n?.account ?? 'Account',
           ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+}
+
+/// Provider to access MainNavigation state from child widgets
+class MainNavigationProvider extends InheritedWidget {
+  final _MainNavigationState navigationState;
+  
+  const MainNavigationProvider({
+    super.key,
+    required this.navigationState,
+    required super.child,
+  });
+  
+  static _MainNavigationState? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<MainNavigationProvider>()?.navigationState;
+  }
+  
+  @override
+  bool updateShouldNotify(MainNavigationProvider oldWidget) {
+    return navigationState != oldWidget.navigationState;
   }
 }

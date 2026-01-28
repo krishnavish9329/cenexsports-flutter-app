@@ -190,6 +190,7 @@ class ProductCard extends StatelessWidget {
                                 originalPrice: product.originalPrice,
                                 discount: product.discount > 0 ? product.discount : null,
                                 showLabels: true,
+                                showDiscountBadge: false,
                                 priceStyle: AppTextStyles.bodyMedium.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primaryColor,
