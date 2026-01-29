@@ -6,10 +6,12 @@ import '../core/providers/language_provider.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/pages/auth_page.dart';
 import 'main_navigation.dart';
+import 'faq_page.dart';
 import '../presentation/pages/customer_dashboard_page.dart';
 import '../presentation/pages/edit_profile_page.dart';
 import '../presentation/pages/manage_addresses_page.dart';
 import '../presentation/pages/order_history_page.dart';
+import 'help_center_page.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -206,8 +208,15 @@ class ProfilePage extends ConsumerWidget {
                   _buildListTile(
                     context: context,
                     icon: Icons.headset_mic_outlined,
-                    title: 'Help Center',
-                    onTap: () {},
+                    title: 'Customer Support / Help Center',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HelpCenterPage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -241,7 +250,14 @@ class ProfilePage extends ConsumerWidget {
                     context: context,
                     icon: Icons.help_outline,
                     title: 'Browse FAQs',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FaqPage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

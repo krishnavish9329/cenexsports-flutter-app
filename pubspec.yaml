@@ -55,6 +55,10 @@ dependencies:
   # Environment & Security
   flutter_dotenv: ^5.1.0
   shared_preferences: ^2.2.2
+  
+  # Sharing & URL Launcher
+  share_plus: ^10.1.2
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

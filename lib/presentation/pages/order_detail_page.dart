@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/billing_model.dart';
@@ -22,7 +25,6 @@ class OrderDetailPage extends StatefulWidget {
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
   late OrderModel _order;
-  bool _isCancelling = false;
 
   @override
   void initState() {
@@ -30,65 +32,179 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     _order = widget.order;
   }
 
-  Future<void> _cancelOrder() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Order'),
-        content: const Text('Are you sure you want to cancel this order? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No, Keep Order'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Yes, Cancel Order'),
-          ),
-        ],
-      ),
-    );
+  String _getOrderDetailsText() {
+    final buffer = StringBuffer();
+    buffer.writeln('Order Details');
+    buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln('Order #${_order.id ?? 'N/A'}');
+    buffer.writeln('Status: ${(_order.status ?? 'pending').toUpperCase()}');
+    if (_order.dateCreated != null) {
+      buffer.writeln('Date: ${_formatDate(_order.dateCreated!)}');
+    }
+    buffer.writeln('');
+    buffer.writeln('Order Items:');
+    for (var item in _order.lineItems) {
+      buffer.writeln('• ${item.name ?? 'Product #${item.productId}'}');
+      buffer.writeln('  Qty: ${item.quantity} × ₹${(item.price ?? 0).toStringAsFixed(0)} = ₹${((item.price ?? 0) * item.quantity).toStringAsFixed(0)}');
+    }
+    buffer.writeln('');
+    buffer.writeln('Subtotal: ₹${_calculateSubtotal().toStringAsFixed(0)}');
+    buffer.writeln('Tax: ₹${(_order.total != null ? (_order.total! - _calculateSubtotal()) : 0).toStringAsFixed(0)}');
+    buffer.writeln('Total: ₹${_order.total?.toStringAsFixed(0) ?? '0'}');
+    buffer.writeln('');
+    buffer.writeln('Billing Address:');
+    buffer.writeln('${_order.billing.firstName} ${_order.billing.lastName}');
+    if (_order.billing.address1.isNotEmpty) buffer.writeln(_order.billing.address1);
+    if (_order.billing.address2.isNotEmpty) buffer.writeln(_order.billing.address2);
+    buffer.writeln('${_order.billing.city}, ${_order.billing.state} ${_order.billing.postcode}');
+    if (_order.billing.phone.isNotEmpty) buffer.writeln('Phone: ${_order.billing.phone}');
+    if (_order.billing.email.isNotEmpty) buffer.writeln('Email: ${_order.billing.email}');
+    buffer.writeln('');
+    buffer.writeln('Shipping Address:');
+    buffer.writeln('${_order.shipping.firstName} ${_order.shipping.lastName}');
+    if (_order.shipping.address1.isNotEmpty) buffer.writeln(_order.shipping.address1);
+    if (_order.shipping.address2.isNotEmpty) buffer.writeln(_order.shipping.address2);
+    buffer.writeln('${_order.shipping.city}, ${_order.shipping.state} ${_order.shipping.postcode}');
+    buffer.writeln('');
+    buffer.writeln('Payment Information:');
+    buffer.writeln('Payment Method: ${_order.paymentMethodTitle ?? 'N/A'}');
+    buffer.writeln('Status: ${_order.setPaid ? 'Paid' : 'Pending'}');
+    return buffer.toString();
+  }
 
-    if (confirmed == true && mounted) {
-      setState(() {
-        _isCancelling = true;
-      });
+  Future<void> _copyToClipboard() async {
+    final text = _getOrderDetailsText();
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order details copied to clipboard'),
+          backgroundColor: AppTheme.successColor,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
-      try {
-        final apiService = OrderApiService();
-        final updatedOrder = await apiService.cancelOrder(_order.id!);
-        
-        setState(() {
-          _order = updatedOrder;
-          _isCancelling = false;
-        });
-
+  Future<void> _shareViaWhatsApp() async {
+    final text = _getOrderDetailsText();
+    final encodedText = Uri.encodeComponent(text);
+    final whatsappUrl = 'https://wa.me/?text=$encodedText';
+    
+    try {
+      final uri = Uri.parse(whatsappUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Order cancelled successfully'),
-              backgroundColor: AppTheme.successColor,
-            ),
-          );
-        }
-      } catch (e) {
-        setState(() {
-          _isCancelling = false;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString()),
+              content: Text('WhatsApp not installed'),
               backgroundColor: AppTheme.errorColor,
             ),
           );
         }
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
     }
+  }
+
+  Future<void> _shareViaGmail() async {
+    final text = _getOrderDetailsText();
+    final subject = Uri.encodeComponent('Order #${_order.id ?? 'N/A'} Details');
+    final body = Uri.encodeComponent(text);
+    final gmailUrl = 'mailto:?subject=$subject&body=$body';
+    
+    try {
+      final uri = Uri.parse(gmailUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email app not available'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showShareOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(AppTheme.spacingM),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              'Share Order Details',
+              style: AppTextStyles.h4.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingL),
+            ListTile(
+              leading: const Icon(Icons.copy, color: AppTheme.primaryColor),
+              title: const Text('Copy to Clipboard'),
+              onTap: () {
+                Navigator.pop(context);
+                _copyToClipboard();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat, color: Color(0xFF25D366)),
+              title: const Text('Share via WhatsApp'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareViaWhatsApp();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.email, color: Color(0xFFEA4335)),
+              title: const Text('Share via Gmail'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareViaGmail();
+              },
+            ),
+            const SizedBox(height: AppTheme.spacingS),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -99,12 +215,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
-            onPressed: () {
-              // TODO: Share order/invoice
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share functionality coming soon')),
-              );
-            },
+            onPressed: _showShareOptions,
           ),
         ],
       ),
@@ -132,27 +243,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             // Payment Info
             _buildPaymentInfo(),
             
-            const SizedBox(height: AppTheme.spacingL),
-            
-            // Cancel Button
-            if (_order.status == 'pending' || _order.status == 'processing')
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isCancelling ? null : _cancelOrder,
-                  icon: _isCancelling 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.cancel_outlined),
-                  label: Text(_isCancelling ? 'Cancelling...' : 'Cancel Order'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppTheme.errorColor,
-                    side: const BorderSide(color: AppTheme.errorColor),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ),
-              
             const SizedBox(height: AppTheme.spacingXL),
           ],
         ),

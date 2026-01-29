@@ -239,37 +239,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           SliverToBoxAdapter(
             child: _buildCategoriesSection(context, categoriesAsync),
           ),
-          // On Sale Section
-          if (_isLoading)
-              SliverToBoxAdapter(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final itemWidth = ResponsiveHelper.getHorizontalListItemWidth(context);
-                    final listHeight = ResponsiveHelper.getHorizontalListHeight(context);
-                    return ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: listHeight,
-                        minHeight: 280,
-                      ),
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: ResponsiveHelper.getPadding(context),
-                        ),
-                      itemCount: 2,
-                        itemBuilder: (context, index) => Container(
-                          width: itemWidth,
-                          margin: EdgeInsets.only(
-                            right: ResponsiveHelper.getPadding(context),
-                          ),
-                          child: const ProductCardSkeleton(),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            // Best Sellers Section - Responsive Grid
+          // Best Sellers Section - Responsive Grid
             if (_isLoading)
               SliverPadding(
                 padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),

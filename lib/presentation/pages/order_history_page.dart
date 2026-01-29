@@ -18,6 +18,7 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
   List<OrderModel> _orders = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String _selectedFilter = 'all'; // all, pending, processing, delivered
 
   @override
   void initState() {
@@ -75,7 +76,13 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
               ? _buildErrorState()
               : _orders.isEmpty
                   ? _buildEmptyState()
-                  : _buildOrdersList(),
+                  : Column(
+                      children: [
+                        _buildFilterHeader(),
+                        const SizedBox(height: AppTheme.spacingS),
+                        Expanded(child: _buildOrdersList()),
+                      ],
+                    ),
     );
   }
 
@@ -127,14 +134,110 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
     );
   }
 
+  // Top filter chips: All, Pending, Processing, Delivered
+  Widget _buildFilterHeader() {
+    final theme = Theme.of(context);
+    final filters = const [
+      {'label': 'All', 'value': 'all'},
+      {'label': 'Pending', 'value': 'pending'},
+      {'label': 'Processing', 'value': 'processing'},
+      {'label': 'Delivered', 'value': 'delivered'},
+    ];
+
+    return Container(
+      color: theme.scaffoldBackgroundColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingM,
+        vertical: AppTheme.spacingS,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: filters.map((filter) {
+            final value = filter['value'] as String;
+            final label = filter['label'] as String;
+            final isSelected = _selectedFilter == value;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: AppTheme.spacingS),
+              child: ChoiceChip(
+                label: Text(label),
+                selected: isSelected,
+                onSelected: (_) {
+                  setState(() {
+                    _selectedFilter = value;
+                  });
+                },
+                backgroundColor: theme.cardColor,
+                selectedColor: AppTheme.primaryColor.withOpacity(0.12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : theme.dividerColor.withOpacity(0.4),
+                  ),
+                ),
+                labelStyle: AppTextStyles.bodyMedium.copyWith(
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : theme.colorScheme.onSurface.withOpacity(0.8),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // Orders filtered by selected status
+  List<OrderModel> get _filteredOrders {
+    if (_selectedFilter == 'all') return _orders;
+
+    return _orders.where((order) {
+      final status = (order.status ?? '').toLowerCase();
+      switch (_selectedFilter) {
+        case 'pending':
+          // Treat pending / on-hold as "Pending"
+          return status == 'pending' || status == 'on-hold';
+        case 'processing':
+          return status == 'processing';
+        case 'delivered':
+          // WooCommerce usually uses "completed" for delivered orders
+          return status == 'completed';
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
   Widget _buildOrdersList() {
+    final orders = _filteredOrders;
+
+    if (orders.isEmpty) {
+      // Empty only for this filter, not for all orders
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingL),
+          child: Text(
+            'No orders in this status yet',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.grey[600],
+            ),
+          ),
+        ),
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: _loadOrders,
       child: ListView.builder(
         padding: const EdgeInsets.all(AppTheme.spacingM),
-        itemCount: _orders.length,
+        itemCount: orders.length,
         itemBuilder: (context, index) {
-          final order = _orders[index];
+          final order = orders[index];
           return _buildOrderCard(order);
         },
       ),
