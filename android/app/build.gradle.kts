@@ -45,6 +45,11 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
+        // Add debug build type to avoid issues
+        debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
     }
 
     // Split APKs by ABI to reduce size (optional - uncomment if you want separate APKs per architecture)

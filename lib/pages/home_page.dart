@@ -5,11 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/skeleton_loader.dart';
+import '../widgets/no_internet_widget.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/responsive_helper.dart';
 import '../core/providers/cart_provider.dart';
@@ -44,14 +47,68 @@ class _HomePageState extends ConsumerState<HomePage> {
   int _displayedProductsCount = 0;
   bool _isLoadingMore = false;
   final int _productsPerPage = 5; // 5 rows at a time
+  
+  // Connectivity
+  bool _hasInternet = true;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  final Connectivity _connectivity = Connectivity();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _scrollController.addListener(_onProductsScroll);
+    _checkConnectivity();
+    _startConnectivityListener();
     _loadProducts();
     _startFlashSaleTimer();
+  }
+  
+  Future<void> _checkConnectivity() async {
+    try {
+      final connectivityResult = await _connectivity.checkConnectivity();
+      final hasConnection = connectivityResult.contains(ConnectivityResult.mobile) ||
+          connectivityResult.contains(ConnectivityResult.wifi) ||
+          connectivityResult.contains(ConnectivityResult.ethernet);
+      
+      if (mounted) {
+        setState(() {
+          _hasInternet = hasConnection;
+        });
+        
+        // If internet is available and products are empty, load them
+        if (_hasInternet && _products.isEmpty && !_isLoading) {
+          _loadProducts();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasInternet = false;
+        });
+      }
+    }
+  }
+  
+  void _startConnectivityListener() {
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+      (List<ConnectivityResult> result) {
+        final hasConnection = result.contains(ConnectivityResult.mobile) ||
+            result.contains(ConnectivityResult.wifi) ||
+            result.contains(ConnectivityResult.ethernet);
+        
+        if (mounted) {
+          setState(() {
+            _hasInternet = hasConnection;
+          });
+          
+          // If internet is restored, reload products
+          if (_hasInternet && _products.isEmpty) {
+            _loadProducts();
+          }
+        }
+      },
+    );
   }
   
   void _onProductsScroll() {
@@ -119,6 +176,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _loadProducts({bool forceRefresh = false}) async {
+    // Check connectivity before loading
+    await _checkConnectivity();
+    if (!_hasInternet) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'No internet connection';
+      });
+      return;
+    }
+    
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -139,6 +206,17 @@ class _HomePageState extends ConsumerState<HomePage> {
         }
       });
     } catch (e) {
+      // Check if error is due to no internet
+      final errorString = e.toString().toLowerCase();
+      final isNetworkError = errorString.contains('socketexception') ||
+          errorString.contains('failed host lookup') ||
+          errorString.contains('network') ||
+          errorString.contains('connection');
+      
+      if (isNetworkError) {
+        await _checkConnectivity();
+      }
+      
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
@@ -152,6 +230,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.removeListener(_onProductsScroll);
     _scrollController.dispose();
@@ -191,6 +270,18 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Show No Internet widget if no internet connection
+    if (!_hasInternet) {
+      return NoInternetWidget(
+        onRetry: () {
+          _checkConnectivity();
+          if (_hasInternet) {
+            _loadProducts(forceRefresh: true);
+          }
+        },
+      );
+    }
+    
     final cartProvider = provider_package.Provider.of<CartProvider>(context);
     final categoriesAsync = ref.watch(categoriesProvider);
     final collapsedHeaderHeight = _getHeaderCollapsedHeight(context);
@@ -199,7 +290,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF8F3),
       body: RefreshIndicator(
-        onRefresh: () => _loadProducts(forceRefresh: true),
+        onRefresh: () async {
+          await _checkConnectivity();
+          if (_hasInternet) {
+            await _loadProducts(forceRefresh: true);
+          }
+        },
         child: ScrollbarTheme(
           data: const ScrollbarThemeData(
             thickness: MaterialStatePropertyAll(0),
@@ -1279,7 +1375,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
       },
       error: (error, stackTrace) {
-        // Show error state but still show the section header
+        // Show a graceful error state so user knows categories failed to load
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

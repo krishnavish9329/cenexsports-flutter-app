@@ -51,6 +51,7 @@ dependencies:
   
   # API & Network
   dio: ^5.4.0
+  connectivity_plus: ^6.1.0
   
   # Environment & Security
   flutter_dotenv: ^5.1.0
