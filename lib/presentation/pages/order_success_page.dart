@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/order_model.dart';
 import 'order_history_page.dart';
+import '../../pages/main_navigation.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   final OrderModel order;
@@ -159,8 +160,10 @@ class OrderSuccessPage extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     // Navigate to home and clear navigation stack
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/',
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const MainNavigation(),
+                      ),
                       (route) => false,
                     );
                   },

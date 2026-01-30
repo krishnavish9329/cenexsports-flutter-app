@@ -616,98 +616,106 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final isInCart = cartProvider.isInCart(product.id);
 
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingM),
-        decoration: BoxDecoration(
+      decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-          boxShadow: [
-            BoxShadow(
+        boxShadow: [
+          BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
       child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  cartProvider.addToCart(product);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isInCart
-                            ? '${product.name} updated in cart'
-                            : '${product.name} added to cart',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: Colors.black,
-                      behavior: SnackBarBehavior.floating,
-                      margin: const EdgeInsets.only(
-                        bottom: 100,
-                        left: 16,
-                        right: 16,
-                      ),
-                    ),
-                  );
-                },
-                icon: Icon(
-                  isInCart ? Icons.check : Icons.shopping_cart_outlined,
-                ),
-                label: Text(isInCart ? 'In Cart' : 'Add to Cart'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: AppTheme.primaryColor),
-                  shape: const StadiumBorder(),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppTheme.spacingM),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (!isInCart) {
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 12), // Provides 12px padding on devices without safe area, or uses system safe area
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: AppTheme.spacingM,
+            right: AppTheme.spacingM,
+            top: 8, // Reduced top padding
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
                     cartProvider.addToCart(product);
-                  }
-                  
-                  // Check if user is logged in
-                  final authState = ref.read(authProvider);
-                  
-                  if (authState.isAuthenticated) {
-                    // User is logged in - navigate directly to checkout
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CheckoutPage(),
-                      ),
-                    );
-                  } else {
-                    // User not logged in - navigate to login page first
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AuthPage(
-                          redirectToCheckout: true,
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isInCart
+                              ? '${product.name} updated in cart'
+                              : '${product.name} added to cart',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.black,
+                        behavior: SnackBarBehavior.floating,
+                        margin: const EdgeInsets.only(
+                          bottom: 100,
+                          left: 16,
+                          right: 16,
                         ),
                       ),
                     );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: const StadiumBorder(),
-                ),
-                child: Text(
-                  'Buy Now',
-                  style: AppTextStyles.button,
+                  },
+                  icon: Icon(
+                    isInCart ? Icons.check : Icons.shopping_cart_outlined,
+                    size: 20,
+                  ),
+                  label: Text(isInCart ? 'In Cart' : 'Add to Cart'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10), // Reduced from 12
+                    side: const BorderSide(color: AppTheme.primaryColor),
+                    shape: const StadiumBorder(),
+                    textStyle: AppTextStyles.button.copyWith(fontSize: 14),
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: AppTheme.spacingM),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!isInCart) {
+                      cartProvider.addToCart(product);
+                    }
+                    
+                    // Check if user is logged in
+                    final authState = ref.read(authProvider);
+                    
+                    if (authState.isAuthenticated) {
+                      // User is logged in - navigate directly to checkout
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CheckoutPage(),
+                        ),
+                      );
+                    } else {
+                      // User not logged in - navigate to login page first
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AuthPage(
+                            redirectToCheckout: true,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10), // Reduced from 12
+                    shape: const StadiumBorder(),
+                    textStyle: AppTextStyles.button.copyWith(fontSize: 16),
+                  ),
+                  child: const Text('Buy Now'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
