@@ -261,10 +261,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           ),
           
           // Back Button - Top Left
-          SafeArea(
-            child: Positioned(
-              top: 0,
-              left: 0,
+          Positioned(
+            top: 0,
+            left: 0,
+            child: SafeArea(
               child: Container(
                 margin: const EdgeInsets.all(AppTheme.spacingM),
                 decoration: BoxDecoration(

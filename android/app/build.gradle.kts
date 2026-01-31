@@ -32,10 +32,9 @@ android {
 
     buildTypes {
         release {
-            // Enable code shrinking, obfuscation, and optimization
-            isMinifyEnabled = true
-            // Disable resource shrinking to prevent UI layout issues
-            // Resource shrinking can remove necessary resources and cause spacing issues
+            // Disable code shrinking to fix release APK issues
+            isMinifyEnabled = false
+            // Disable resource shrinking
             isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
